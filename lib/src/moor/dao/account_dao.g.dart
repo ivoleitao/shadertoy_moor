@@ -7,5 +7,5 @@ part of 'account_dao.dart';
 // **************************************************************************
 
 mixin _$AccountDaoMixin on DatabaseAccessor<MoorStore> {
-  $AccountTableTable get accountTable => db.accountTable;
+  $AccountTableTable get accountTable => attachedDatabase.accountTable;
 }

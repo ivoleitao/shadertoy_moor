@@ -7,5 +7,5 @@ part of 'user_dao.dart';
 // **************************************************************************
 
 mixin _$UserDaoMixin on DatabaseAccessor<MoorStore> {
-  $UserTableTable get userTable => db.userTable;
+  $UserTableTable get userTable => attachedDatabase.userTable;
 }

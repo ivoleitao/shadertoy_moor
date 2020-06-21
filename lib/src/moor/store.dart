@@ -28,7 +28,6 @@ part 'store.g.dart';
 ], daos: [
   UserDao,
   AccountDao,
-  AccountDao,
   ShaderDao,
   CommentDao,
   PlaylistDao

@@ -82,6 +82,7 @@ class AccountDao extends DatabaseAccessor<MoorStore> with _$AccountDaoMixin {
   }
 
   Future<int> save(Account account) {
-    return into(accountTable).insert(_toEntry(account), orReplace: true);
+    return into(accountTable)
+        .insert(_toEntry(account), mode: InsertMode.insertOrReplace);
   }
 }

@@ -41,32 +41,31 @@ class UserEntry extends DataClass implements Insertable<UserEntry> {
           stringType.mapFromDatabaseResponse(data['${effectivePrefix}about']),
     );
   }
-  factory UserEntry.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
-    return UserEntry(
-      id: serializer.fromJson<String>(json['id']),
-      picture: serializer.fromJson<String>(json['picture']),
-      memberSince: serializer.fromJson<DateTime>(json['memberSince']),
-      shaders: serializer.fromJson<int>(json['shaders']),
-      comments: serializer.fromJson<int>(json['comments']),
-      about: serializer.fromJson<String>(json['about']),
-    );
-  }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
-    return {
-      'id': serializer.toJson<String>(id),
-      'picture': serializer.toJson<String>(picture),
-      'memberSince': serializer.toJson<DateTime>(memberSince),
-      'shaders': serializer.toJson<int>(shaders),
-      'comments': serializer.toJson<int>(comments),
-      'about': serializer.toJson<String>(about),
-    };
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<String>(id);
+    }
+    if (!nullToAbsent || picture != null) {
+      map['picture'] = Variable<String>(picture);
+    }
+    if (!nullToAbsent || memberSince != null) {
+      map['member_since'] = Variable<DateTime>(memberSince);
+    }
+    if (!nullToAbsent || shaders != null) {
+      map['shaders'] = Variable<int>(shaders);
+    }
+    if (!nullToAbsent || comments != null) {
+      map['comments'] = Variable<int>(comments);
+    }
+    if (!nullToAbsent || about != null) {
+      map['about'] = Variable<String>(about);
+    }
+    return map;
   }
 
-  @override
-  UserTableCompanion createCompanion(bool nullToAbsent) {
+  UserTableCompanion toCompanion(bool nullToAbsent) {
     return UserTableCompanion(
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
       picture: picture == null && nullToAbsent
@@ -84,6 +83,31 @@ class UserEntry extends DataClass implements Insertable<UserEntry> {
       about:
           about == null && nullToAbsent ? const Value.absent() : Value(about),
     );
+  }
+
+  factory UserEntry.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return UserEntry(
+      id: serializer.fromJson<String>(json['id']),
+      picture: serializer.fromJson<String>(json['picture']),
+      memberSince: serializer.fromJson<DateTime>(json['memberSince']),
+      shaders: serializer.fromJson<int>(json['shaders']),
+      comments: serializer.fromJson<int>(json['comments']),
+      about: serializer.fromJson<String>(json['about']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'picture': serializer.toJson<String>(picture),
+      'memberSince': serializer.toJson<DateTime>(memberSince),
+      'shaders': serializer.toJson<int>(shaders),
+      'comments': serializer.toJson<int>(comments),
+      'about': serializer.toJson<String>(about),
+    };
   }
 
   UserEntry copyWith(
@@ -124,7 +148,7 @@ class UserEntry extends DataClass implements Insertable<UserEntry> {
               $mrjc(shaders.hashCode,
                   $mrjc(comments.hashCode, about.hashCode))))));
   @override
-  bool operator ==(other) =>
+  bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is UserEntry &&
           other.id == this.id &&
@@ -158,6 +182,24 @@ class UserTableCompanion extends UpdateCompanion<UserEntry> {
     this.comments = const Value.absent(),
     this.about = const Value.absent(),
   }) : id = Value(id);
+  static Insertable<UserEntry> custom({
+    Expression<String> id,
+    Expression<String> picture,
+    Expression<DateTime> memberSince,
+    Expression<int> shaders,
+    Expression<int> comments,
+    Expression<String> about,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (picture != null) 'picture': picture,
+      if (memberSince != null) 'member_since': memberSince,
+      if (shaders != null) 'shaders': shaders,
+      if (comments != null) 'comments': comments,
+      if (about != null) 'about': about,
+    });
+  }
+
   UserTableCompanion copyWith(
       {Value<String> id,
       Value<String> picture,
@@ -173,6 +215,30 @@ class UserTableCompanion extends UpdateCompanion<UserEntry> {
       comments: comments ?? this.comments,
       about: about ?? this.about,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (picture.present) {
+      map['picture'] = Variable<String>(picture.value);
+    }
+    if (memberSince.present) {
+      map['member_since'] = Variable<DateTime>(memberSince.value);
+    }
+    if (shaders.present) {
+      map['shaders'] = Variable<int>(shaders.value);
+    }
+    if (comments.present) {
+      map['comments'] = Variable<int>(comments.value);
+    }
+    if (about.present) {
+      map['about'] = Variable<String>(about.value);
+    }
+    return map;
   }
 }
 
@@ -265,43 +331,36 @@ class $UserTableTable extends UserTable
   @override
   final String actualTableName = 'User';
   @override
-  VerificationContext validateIntegrity(UserTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<UserEntry> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
+    } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (d.picture.present) {
+    if (data.containsKey('picture')) {
       context.handle(_pictureMeta,
-          picture.isAcceptableValue(d.picture.value, _pictureMeta));
-    } else if (picture.isRequired && isInserting) {
-      context.missing(_pictureMeta);
+          picture.isAcceptableOrUnknown(data['picture'], _pictureMeta));
     }
-    if (d.memberSince.present) {
-      context.handle(_memberSinceMeta,
-          memberSince.isAcceptableValue(d.memberSince.value, _memberSinceMeta));
-    } else if (memberSince.isRequired && isInserting) {
-      context.missing(_memberSinceMeta);
-    }
-    if (d.shaders.present) {
-      context.handle(_shadersMeta,
-          shaders.isAcceptableValue(d.shaders.value, _shadersMeta));
-    } else if (shaders.isRequired && isInserting) {
-      context.missing(_shadersMeta);
-    }
-    if (d.comments.present) {
-      context.handle(_commentsMeta,
-          comments.isAcceptableValue(d.comments.value, _commentsMeta));
-    } else if (comments.isRequired && isInserting) {
-      context.missing(_commentsMeta);
-    }
-    if (d.about.present) {
+    if (data.containsKey('member_since')) {
       context.handle(
-          _aboutMeta, about.isAcceptableValue(d.about.value, _aboutMeta));
-    } else if (about.isRequired && isInserting) {
-      context.missing(_aboutMeta);
+          _memberSinceMeta,
+          memberSince.isAcceptableOrUnknown(
+              data['member_since'], _memberSinceMeta));
+    }
+    if (data.containsKey('shaders')) {
+      context.handle(_shadersMeta,
+          shaders.isAcceptableOrUnknown(data['shaders'], _shadersMeta));
+    }
+    if (data.containsKey('comments')) {
+      context.handle(_commentsMeta,
+          comments.isAcceptableOrUnknown(data['comments'], _commentsMeta));
+    }
+    if (data.containsKey('about')) {
+      context.handle(
+          _aboutMeta, about.isAcceptableOrUnknown(data['about'], _aboutMeta));
     }
     return context;
   }
@@ -312,31 +371,6 @@ class $UserTableTable extends UserTable
   UserEntry map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return UserEntry.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(UserTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.id.present) {
-      map['id'] = Variable<String, StringType>(d.id.value);
-    }
-    if (d.picture.present) {
-      map['picture'] = Variable<String, StringType>(d.picture.value);
-    }
-    if (d.memberSince.present) {
-      map['member_since'] =
-          Variable<DateTime, DateTimeType>(d.memberSince.value);
-    }
-    if (d.shaders.present) {
-      map['shaders'] = Variable<int, IntType>(d.shaders.value);
-    }
-    if (d.comments.present) {
-      map['comments'] = Variable<int, IntType>(d.comments.value);
-    }
-    if (d.about.present) {
-      map['about'] = Variable<String, StringType>(d.about.value);
-    }
-    return map;
   }
 
   @override
@@ -377,32 +411,31 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
           stringType.mapFromDatabaseResponse(data['${effectivePrefix}picture']),
     );
   }
-  factory AccountEntry.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
-    return AccountEntry(
-      name: serializer.fromJson<String>(json['name']),
-      type: serializer.fromJson<String>(json['type']),
-      system: serializer.fromJson<bool>(json['system']),
-      password: serializer.fromJson<String>(json['password']),
-      displayName: serializer.fromJson<String>(json['displayName']),
-      picture: serializer.fromJson<String>(json['picture']),
-    );
-  }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
-    return {
-      'name': serializer.toJson<String>(name),
-      'type': serializer.toJson<String>(type),
-      'system': serializer.toJson<bool>(system),
-      'password': serializer.toJson<String>(password),
-      'displayName': serializer.toJson<String>(displayName),
-      'picture': serializer.toJson<String>(picture),
-    };
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || type != null) {
+      map['type'] = Variable<String>(type);
+    }
+    if (!nullToAbsent || system != null) {
+      map['system'] = Variable<bool>(system);
+    }
+    if (!nullToAbsent || password != null) {
+      map['password'] = Variable<String>(password);
+    }
+    if (!nullToAbsent || displayName != null) {
+      map['display_name'] = Variable<String>(displayName);
+    }
+    if (!nullToAbsent || picture != null) {
+      map['picture'] = Variable<String>(picture);
+    }
+    return map;
   }
 
-  @override
-  AccountTableCompanion createCompanion(bool nullToAbsent) {
+  AccountTableCompanion toCompanion(bool nullToAbsent) {
     return AccountTableCompanion(
       name: name == null && nullToAbsent ? const Value.absent() : Value(name),
       type: type == null && nullToAbsent ? const Value.absent() : Value(type),
@@ -418,6 +451,31 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
           ? const Value.absent()
           : Value(picture),
     );
+  }
+
+  factory AccountEntry.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return AccountEntry(
+      name: serializer.fromJson<String>(json['name']),
+      type: serializer.fromJson<String>(json['type']),
+      system: serializer.fromJson<bool>(json['system']),
+      password: serializer.fromJson<String>(json['password']),
+      displayName: serializer.fromJson<String>(json['displayName']),
+      picture: serializer.fromJson<String>(json['picture']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'name': serializer.toJson<String>(name),
+      'type': serializer.toJson<String>(type),
+      'system': serializer.toJson<bool>(system),
+      'password': serializer.toJson<String>(password),
+      'displayName': serializer.toJson<String>(displayName),
+      'picture': serializer.toJson<String>(picture),
+    };
   }
 
   AccountEntry copyWith(
@@ -458,7 +516,7 @@ class AccountEntry extends DataClass implements Insertable<AccountEntry> {
               $mrjc(password.hashCode,
                   $mrjc(displayName.hashCode, picture.hashCode))))));
   @override
-  bool operator ==(other) =>
+  bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is AccountEntry &&
           other.name == this.name &&
@@ -494,6 +552,24 @@ class AccountTableCompanion extends UpdateCompanion<AccountEntry> {
   })  : name = Value(name),
         type = Value(type),
         system = Value(system);
+  static Insertable<AccountEntry> custom({
+    Expression<String> name,
+    Expression<String> type,
+    Expression<bool> system,
+    Expression<String> password,
+    Expression<String> displayName,
+    Expression<String> picture,
+  }) {
+    return RawValuesInsertable({
+      if (name != null) 'name': name,
+      if (type != null) 'type': type,
+      if (system != null) 'system': system,
+      if (password != null) 'password': password,
+      if (displayName != null) 'display_name': displayName,
+      if (picture != null) 'picture': picture,
+    });
+  }
+
   AccountTableCompanion copyWith(
       {Value<String> name,
       Value<String> type,
@@ -509,6 +585,30 @@ class AccountTableCompanion extends UpdateCompanion<AccountEntry> {
       displayName: displayName ?? this.displayName,
       picture: picture ?? this.picture,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (system.present) {
+      map['system'] = Variable<bool>(system.value);
+    }
+    if (password.present) {
+      map['password'] = Variable<String>(password.value);
+    }
+    if (displayName.present) {
+      map['display_name'] = Variable<String>(displayName.value);
+    }
+    if (picture.present) {
+      map['picture'] = Variable<String>(picture.value);
+    }
+    return map;
   }
 }
 
@@ -601,44 +701,41 @@ class $AccountTableTable extends AccountTable
   @override
   final String actualTableName = 'Account';
   @override
-  VerificationContext validateIntegrity(AccountTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<AccountEntry> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.name.present) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
-    } else if (name.isRequired && isInserting) {
+          _nameMeta, name.isAcceptableOrUnknown(data['name'], _nameMeta));
+    } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (d.type.present) {
+    if (data.containsKey('type')) {
       context.handle(
-          _typeMeta, type.isAcceptableValue(d.type.value, _typeMeta));
-    } else if (type.isRequired && isInserting) {
+          _typeMeta, type.isAcceptableOrUnknown(data['type'], _typeMeta));
+    } else if (isInserting) {
       context.missing(_typeMeta);
     }
-    if (d.system.present) {
-      context.handle(
-          _systemMeta, system.isAcceptableValue(d.system.value, _systemMeta));
-    } else if (system.isRequired && isInserting) {
+    if (data.containsKey('system')) {
+      context.handle(_systemMeta,
+          system.isAcceptableOrUnknown(data['system'], _systemMeta));
+    } else if (isInserting) {
       context.missing(_systemMeta);
     }
-    if (d.password.present) {
+    if (data.containsKey('password')) {
       context.handle(_passwordMeta,
-          password.isAcceptableValue(d.password.value, _passwordMeta));
-    } else if (password.isRequired && isInserting) {
-      context.missing(_passwordMeta);
+          password.isAcceptableOrUnknown(data['password'], _passwordMeta));
     }
-    if (d.displayName.present) {
-      context.handle(_displayNameMeta,
-          displayName.isAcceptableValue(d.displayName.value, _displayNameMeta));
-    } else if (displayName.isRequired && isInserting) {
-      context.missing(_displayNameMeta);
+    if (data.containsKey('display_name')) {
+      context.handle(
+          _displayNameMeta,
+          displayName.isAcceptableOrUnknown(
+              data['display_name'], _displayNameMeta));
     }
-    if (d.picture.present) {
+    if (data.containsKey('picture')) {
       context.handle(_pictureMeta,
-          picture.isAcceptableValue(d.picture.value, _pictureMeta));
-    } else if (picture.isRequired && isInserting) {
-      context.missing(_pictureMeta);
+          picture.isAcceptableOrUnknown(data['picture'], _pictureMeta));
     }
     return context;
   }
@@ -649,30 +746,6 @@ class $AccountTableTable extends AccountTable
   AccountEntry map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return AccountEntry.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(AccountTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.name.present) {
-      map['name'] = Variable<String, StringType>(d.name.value);
-    }
-    if (d.type.present) {
-      map['type'] = Variable<String, StringType>(d.type.value);
-    }
-    if (d.system.present) {
-      map['system'] = Variable<bool, BoolType>(d.system.value);
-    }
-    if (d.password.present) {
-      map['password'] = Variable<String, StringType>(d.password.value);
-    }
-    if (d.displayName.present) {
-      map['display_name'] = Variable<String, StringType>(d.displayName.value);
-    }
-    if (d.picture.present) {
-      map['picture'] = Variable<String, StringType>(d.picture.value);
-    }
-    return map;
   }
 
   @override
@@ -739,46 +812,52 @@ class ShaderEntry extends DataClass implements Insertable<ShaderEntry> {
           data['${effectivePrefix}render_passes_json']),
     );
   }
-  factory ShaderEntry.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
-    return ShaderEntry(
-      id: serializer.fromJson<String>(json['id']),
-      userId: serializer.fromJson<String>(json['userId']),
-      version: serializer.fromJson<String>(json['version']),
-      name: serializer.fromJson<String>(json['name']),
-      date: serializer.fromJson<DateTime>(json['date']),
-      description: serializer.fromJson<String>(json['description']),
-      views: serializer.fromJson<int>(json['views']),
-      likes: serializer.fromJson<int>(json['likes']),
-      publishStatus: serializer.fromJson<String>(json['publishStatus']),
-      flags: serializer.fromJson<int>(json['flags']),
-      tagsJson: serializer.fromJson<String>(json['tagsJson']),
-      liked: serializer.fromJson<bool>(json['liked']),
-      renderPassesJson: serializer.fromJson<String>(json['renderPassesJson']),
-    );
-  }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
-    return {
-      'id': serializer.toJson<String>(id),
-      'userId': serializer.toJson<String>(userId),
-      'version': serializer.toJson<String>(version),
-      'name': serializer.toJson<String>(name),
-      'date': serializer.toJson<DateTime>(date),
-      'description': serializer.toJson<String>(description),
-      'views': serializer.toJson<int>(views),
-      'likes': serializer.toJson<int>(likes),
-      'publishStatus': serializer.toJson<String>(publishStatus),
-      'flags': serializer.toJson<int>(flags),
-      'tagsJson': serializer.toJson<String>(tagsJson),
-      'liked': serializer.toJson<bool>(liked),
-      'renderPassesJson': serializer.toJson<String>(renderPassesJson),
-    };
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<String>(id);
+    }
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
+    if (!nullToAbsent || version != null) {
+      map['version'] = Variable<String>(version);
+    }
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    if (!nullToAbsent || date != null) {
+      map['date'] = Variable<DateTime>(date);
+    }
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    if (!nullToAbsent || views != null) {
+      map['views'] = Variable<int>(views);
+    }
+    if (!nullToAbsent || likes != null) {
+      map['likes'] = Variable<int>(likes);
+    }
+    if (!nullToAbsent || publishStatus != null) {
+      map['publish_status'] = Variable<String>(publishStatus);
+    }
+    if (!nullToAbsent || flags != null) {
+      map['flags'] = Variable<int>(flags);
+    }
+    if (!nullToAbsent || tagsJson != null) {
+      map['tags_json'] = Variable<String>(tagsJson);
+    }
+    if (!nullToAbsent || liked != null) {
+      map['liked'] = Variable<bool>(liked);
+    }
+    if (!nullToAbsent || renderPassesJson != null) {
+      map['render_passes_json'] = Variable<String>(renderPassesJson);
+    }
+    return map;
   }
 
-  @override
-  ShaderTableCompanion createCompanion(bool nullToAbsent) {
+  ShaderTableCompanion toCompanion(bool nullToAbsent) {
     return ShaderTableCompanion(
       id: id == null && nullToAbsent ? const Value.absent() : Value(id),
       userId:
@@ -809,6 +888,45 @@ class ShaderEntry extends DataClass implements Insertable<ShaderEntry> {
           ? const Value.absent()
           : Value(renderPassesJson),
     );
+  }
+
+  factory ShaderEntry.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return ShaderEntry(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      version: serializer.fromJson<String>(json['version']),
+      name: serializer.fromJson<String>(json['name']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      description: serializer.fromJson<String>(json['description']),
+      views: serializer.fromJson<int>(json['views']),
+      likes: serializer.fromJson<int>(json['likes']),
+      publishStatus: serializer.fromJson<String>(json['publishStatus']),
+      flags: serializer.fromJson<int>(json['flags']),
+      tagsJson: serializer.fromJson<String>(json['tagsJson']),
+      liked: serializer.fromJson<bool>(json['liked']),
+      renderPassesJson: serializer.fromJson<String>(json['renderPassesJson']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'version': serializer.toJson<String>(version),
+      'name': serializer.toJson<String>(name),
+      'date': serializer.toJson<DateTime>(date),
+      'description': serializer.toJson<String>(description),
+      'views': serializer.toJson<int>(views),
+      'likes': serializer.toJson<int>(likes),
+      'publishStatus': serializer.toJson<String>(publishStatus),
+      'flags': serializer.toJson<int>(flags),
+      'tagsJson': serializer.toJson<String>(tagsJson),
+      'liked': serializer.toJson<bool>(liked),
+      'renderPassesJson': serializer.toJson<String>(renderPassesJson),
+    };
   }
 
   ShaderEntry copyWith(
@@ -888,7 +1006,7 @@ class ShaderEntry extends DataClass implements Insertable<ShaderEntry> {
                                                   renderPassesJson
                                                       .hashCode)))))))))))));
   @override
-  bool operator ==(other) =>
+  bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is ShaderEntry &&
           other.id == this.id &&
@@ -956,6 +1074,38 @@ class ShaderTableCompanion extends UpdateCompanion<ShaderEntry> {
         date = Value(date),
         tagsJson = Value(tagsJson),
         renderPassesJson = Value(renderPassesJson);
+  static Insertable<ShaderEntry> custom({
+    Expression<String> id,
+    Expression<String> userId,
+    Expression<String> version,
+    Expression<String> name,
+    Expression<DateTime> date,
+    Expression<String> description,
+    Expression<int> views,
+    Expression<int> likes,
+    Expression<String> publishStatus,
+    Expression<int> flags,
+    Expression<String> tagsJson,
+    Expression<bool> liked,
+    Expression<String> renderPassesJson,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (version != null) 'version': version,
+      if (name != null) 'name': name,
+      if (date != null) 'date': date,
+      if (description != null) 'description': description,
+      if (views != null) 'views': views,
+      if (likes != null) 'likes': likes,
+      if (publishStatus != null) 'publish_status': publishStatus,
+      if (flags != null) 'flags': flags,
+      if (tagsJson != null) 'tags_json': tagsJson,
+      if (liked != null) 'liked': liked,
+      if (renderPassesJson != null) 'render_passes_json': renderPassesJson,
+    });
+  }
+
   ShaderTableCompanion copyWith(
       {Value<String> id,
       Value<String> userId,
@@ -985,6 +1135,51 @@ class ShaderTableCompanion extends UpdateCompanion<ShaderEntry> {
       liked: liked ?? this.liked,
       renderPassesJson: renderPassesJson ?? this.renderPassesJson,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (version.present) {
+      map['version'] = Variable<String>(version.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (views.present) {
+      map['views'] = Variable<int>(views.value);
+    }
+    if (likes.present) {
+      map['likes'] = Variable<int>(likes.value);
+    }
+    if (publishStatus.present) {
+      map['publish_status'] = Variable<String>(publishStatus.value);
+    }
+    if (flags.present) {
+      map['flags'] = Variable<int>(flags.value);
+    }
+    if (tagsJson.present) {
+      map['tags_json'] = Variable<String>(tagsJson.value);
+    }
+    if (liked.present) {
+      map['liked'] = Variable<bool>(liked.value);
+    }
+    if (renderPassesJson.present) {
+      map['render_passes_json'] = Variable<String>(renderPassesJson.value);
+    }
+    return map;
   }
 }
 
@@ -1166,88 +1361,79 @@ class $ShaderTableTable extends ShaderTable
   @override
   final String actualTableName = 'Shader';
   @override
-  VerificationContext validateIntegrity(ShaderTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<ShaderEntry> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
+    } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (d.userId.present) {
-      context.handle(
-          _userIdMeta, userId.isAcceptableValue(d.userId.value, _userIdMeta));
-    } else if (userId.isRequired && isInserting) {
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id'], _userIdMeta));
+    } else if (isInserting) {
       context.missing(_userIdMeta);
     }
-    if (d.version.present) {
+    if (data.containsKey('version')) {
       context.handle(_versionMeta,
-          version.isAcceptableValue(d.version.value, _versionMeta));
-    } else if (version.isRequired && isInserting) {
+          version.isAcceptableOrUnknown(data['version'], _versionMeta));
+    } else if (isInserting) {
       context.missing(_versionMeta);
     }
-    if (d.name.present) {
+    if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
-    } else if (name.isRequired && isInserting) {
+          _nameMeta, name.isAcceptableOrUnknown(data['name'], _nameMeta));
+    } else if (isInserting) {
       context.missing(_nameMeta);
     }
-    if (d.date.present) {
+    if (data.containsKey('date')) {
       context.handle(
-          _dateMeta, date.isAcceptableValue(d.date.value, _dateMeta));
-    } else if (date.isRequired && isInserting) {
+          _dateMeta, date.isAcceptableOrUnknown(data['date'], _dateMeta));
+    } else if (isInserting) {
       context.missing(_dateMeta);
     }
-    if (d.description.present) {
-      context.handle(_descriptionMeta,
-          description.isAcceptableValue(d.description.value, _descriptionMeta));
-    } else if (description.isRequired && isInserting) {
-      context.missing(_descriptionMeta);
-    }
-    if (d.views.present) {
+    if (data.containsKey('description')) {
       context.handle(
-          _viewsMeta, views.isAcceptableValue(d.views.value, _viewsMeta));
-    } else if (views.isRequired && isInserting) {
-      context.missing(_viewsMeta);
+          _descriptionMeta,
+          description.isAcceptableOrUnknown(
+              data['description'], _descriptionMeta));
     }
-    if (d.likes.present) {
+    if (data.containsKey('views')) {
       context.handle(
-          _likesMeta, likes.isAcceptableValue(d.likes.value, _likesMeta));
-    } else if (likes.isRequired && isInserting) {
-      context.missing(_likesMeta);
+          _viewsMeta, views.isAcceptableOrUnknown(data['views'], _viewsMeta));
     }
-    if (d.publishStatus.present) {
+    if (data.containsKey('likes')) {
+      context.handle(
+          _likesMeta, likes.isAcceptableOrUnknown(data['likes'], _likesMeta));
+    }
+    if (data.containsKey('publish_status')) {
       context.handle(
           _publishStatusMeta,
-          publishStatus.isAcceptableValue(
-              d.publishStatus.value, _publishStatusMeta));
-    } else if (publishStatus.isRequired && isInserting) {
-      context.missing(_publishStatusMeta);
+          publishStatus.isAcceptableOrUnknown(
+              data['publish_status'], _publishStatusMeta));
     }
-    if (d.flags.present) {
+    if (data.containsKey('flags')) {
       context.handle(
-          _flagsMeta, flags.isAcceptableValue(d.flags.value, _flagsMeta));
-    } else if (flags.isRequired && isInserting) {
-      context.missing(_flagsMeta);
+          _flagsMeta, flags.isAcceptableOrUnknown(data['flags'], _flagsMeta));
     }
-    if (d.tagsJson.present) {
+    if (data.containsKey('tags_json')) {
       context.handle(_tagsJsonMeta,
-          tagsJson.isAcceptableValue(d.tagsJson.value, _tagsJsonMeta));
-    } else if (tagsJson.isRequired && isInserting) {
+          tagsJson.isAcceptableOrUnknown(data['tags_json'], _tagsJsonMeta));
+    } else if (isInserting) {
       context.missing(_tagsJsonMeta);
     }
-    if (d.liked.present) {
+    if (data.containsKey('liked')) {
       context.handle(
-          _likedMeta, liked.isAcceptableValue(d.liked.value, _likedMeta));
-    } else if (liked.isRequired && isInserting) {
-      context.missing(_likedMeta);
+          _likedMeta, liked.isAcceptableOrUnknown(data['liked'], _likedMeta));
     }
-    if (d.renderPassesJson.present) {
+    if (data.containsKey('render_passes_json')) {
       context.handle(
           _renderPassesJsonMeta,
-          renderPassesJson.isAcceptableValue(
-              d.renderPassesJson.value, _renderPassesJsonMeta));
-    } else if (renderPassesJson.isRequired && isInserting) {
+          renderPassesJson.isAcceptableOrUnknown(
+              data['render_passes_json'], _renderPassesJsonMeta));
+    } else if (isInserting) {
       context.missing(_renderPassesJsonMeta);
     }
     return context;
@@ -1259,53 +1445,6 @@ class $ShaderTableTable extends ShaderTable
   ShaderEntry map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return ShaderEntry.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(ShaderTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.id.present) {
-      map['id'] = Variable<String, StringType>(d.id.value);
-    }
-    if (d.userId.present) {
-      map['user_id'] = Variable<String, StringType>(d.userId.value);
-    }
-    if (d.version.present) {
-      map['version'] = Variable<String, StringType>(d.version.value);
-    }
-    if (d.name.present) {
-      map['name'] = Variable<String, StringType>(d.name.value);
-    }
-    if (d.date.present) {
-      map['date'] = Variable<DateTime, DateTimeType>(d.date.value);
-    }
-    if (d.description.present) {
-      map['description'] = Variable<String, StringType>(d.description.value);
-    }
-    if (d.views.present) {
-      map['views'] = Variable<int, IntType>(d.views.value);
-    }
-    if (d.likes.present) {
-      map['likes'] = Variable<int, IntType>(d.likes.value);
-    }
-    if (d.publishStatus.present) {
-      map['publish_status'] =
-          Variable<String, StringType>(d.publishStatus.value);
-    }
-    if (d.flags.present) {
-      map['flags'] = Variable<int, IntType>(d.flags.value);
-    }
-    if (d.tagsJson.present) {
-      map['tags_json'] = Variable<String, StringType>(d.tagsJson.value);
-    }
-    if (d.liked.present) {
-      map['liked'] = Variable<bool, BoolType>(d.liked.value);
-    }
-    if (d.renderPassesJson.present) {
-      map['render_passes_json'] =
-          Variable<String, StringType>(d.renderPassesJson.value);
-    }
-    return map;
   }
 
   @override
@@ -1340,28 +1479,25 @@ class CommentEntry extends DataClass implements Insertable<CommentEntry> {
           stringType.mapFromDatabaseResponse(data['${effectivePrefix}comment']),
     );
   }
-  factory CommentEntry.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
-    return CommentEntry(
-      shaderId: serializer.fromJson<String>(json['shaderId']),
-      userId: serializer.fromJson<String>(json['userId']),
-      date: serializer.fromJson<DateTime>(json['date']),
-      comment: serializer.fromJson<String>(json['comment']),
-    );
-  }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
-    return {
-      'shaderId': serializer.toJson<String>(shaderId),
-      'userId': serializer.toJson<String>(userId),
-      'date': serializer.toJson<DateTime>(date),
-      'comment': serializer.toJson<String>(comment),
-    };
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || shaderId != null) {
+      map['shader_id'] = Variable<String>(shaderId);
+    }
+    if (!nullToAbsent || userId != null) {
+      map['user_id'] = Variable<String>(userId);
+    }
+    if (!nullToAbsent || date != null) {
+      map['date'] = Variable<DateTime>(date);
+    }
+    if (!nullToAbsent || comment != null) {
+      map['comment'] = Variable<String>(comment);
+    }
+    return map;
   }
 
-  @override
-  CommentTableCompanion createCompanion(bool nullToAbsent) {
+  CommentTableCompanion toCompanion(bool nullToAbsent) {
     return CommentTableCompanion(
       shaderId: shaderId == null && nullToAbsent
           ? const Value.absent()
@@ -1373,6 +1509,27 @@ class CommentEntry extends DataClass implements Insertable<CommentEntry> {
           ? const Value.absent()
           : Value(comment),
     );
+  }
+
+  factory CommentEntry.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return CommentEntry(
+      shaderId: serializer.fromJson<String>(json['shaderId']),
+      userId: serializer.fromJson<String>(json['userId']),
+      date: serializer.fromJson<DateTime>(json['date']),
+      comment: serializer.fromJson<String>(json['comment']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'shaderId': serializer.toJson<String>(shaderId),
+      'userId': serializer.toJson<String>(userId),
+      'date': serializer.toJson<DateTime>(date),
+      'comment': serializer.toJson<String>(comment),
+    };
   }
 
   CommentEntry copyWith(
@@ -1398,7 +1555,7 @@ class CommentEntry extends DataClass implements Insertable<CommentEntry> {
   int get hashCode => $mrjf($mrjc(shaderId.hashCode,
       $mrjc(userId.hashCode, $mrjc(date.hashCode, comment.hashCode))));
   @override
-  bool operator ==(other) =>
+  bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is CommentEntry &&
           other.shaderId == this.shaderId &&
@@ -1427,6 +1584,20 @@ class CommentTableCompanion extends UpdateCompanion<CommentEntry> {
         userId = Value(userId),
         date = Value(date),
         comment = Value(comment);
+  static Insertable<CommentEntry> custom({
+    Expression<String> shaderId,
+    Expression<String> userId,
+    Expression<DateTime> date,
+    Expression<String> comment,
+  }) {
+    return RawValuesInsertable({
+      if (shaderId != null) 'shader_id': shaderId,
+      if (userId != null) 'user_id': userId,
+      if (date != null) 'date': date,
+      if (comment != null) 'comment': comment,
+    });
+  }
+
   CommentTableCompanion copyWith(
       {Value<String> shaderId,
       Value<String> userId,
@@ -1438,6 +1609,24 @@ class CommentTableCompanion extends UpdateCompanion<CommentEntry> {
       date: date ?? this.date,
       comment: comment ?? this.comment,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (shaderId.present) {
+      map['shader_id'] = Variable<String>(shaderId.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<DateTime>(date.value);
+    }
+    if (comment.present) {
+      map['comment'] = Variable<String>(comment.value);
+    }
+    return map;
   }
 }
 
@@ -1500,31 +1689,32 @@ class $CommentTableTable extends CommentTable
   @override
   final String actualTableName = 'Comment';
   @override
-  VerificationContext validateIntegrity(CommentTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<CommentEntry> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.shaderId.present) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('shader_id')) {
       context.handle(_shaderIdMeta,
-          shaderId.isAcceptableValue(d.shaderId.value, _shaderIdMeta));
-    } else if (shaderId.isRequired && isInserting) {
+          shaderId.isAcceptableOrUnknown(data['shader_id'], _shaderIdMeta));
+    } else if (isInserting) {
       context.missing(_shaderIdMeta);
     }
-    if (d.userId.present) {
-      context.handle(
-          _userIdMeta, userId.isAcceptableValue(d.userId.value, _userIdMeta));
-    } else if (userId.isRequired && isInserting) {
+    if (data.containsKey('user_id')) {
+      context.handle(_userIdMeta,
+          userId.isAcceptableOrUnknown(data['user_id'], _userIdMeta));
+    } else if (isInserting) {
       context.missing(_userIdMeta);
     }
-    if (d.date.present) {
+    if (data.containsKey('date')) {
       context.handle(
-          _dateMeta, date.isAcceptableValue(d.date.value, _dateMeta));
-    } else if (date.isRequired && isInserting) {
+          _dateMeta, date.isAcceptableOrUnknown(data['date'], _dateMeta));
+    } else if (isInserting) {
       context.missing(_dateMeta);
     }
-    if (d.comment.present) {
+    if (data.containsKey('comment')) {
       context.handle(_commentMeta,
-          comment.isAcceptableValue(d.comment.value, _commentMeta));
-    } else if (comment.isRequired && isInserting) {
+          comment.isAcceptableOrUnknown(data['comment'], _commentMeta));
+    } else if (isInserting) {
       context.missing(_commentMeta);
     }
     return context;
@@ -1536,24 +1726,6 @@ class $CommentTableTable extends CommentTable
   CommentEntry map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return CommentEntry.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(CommentTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.shaderId.present) {
-      map['shader_id'] = Variable<String, StringType>(d.shaderId.value);
-    }
-    if (d.userId.present) {
-      map['user_id'] = Variable<String, StringType>(d.userId.value);
-    }
-    if (d.date.present) {
-      map['date'] = Variable<DateTime, DateTimeType>(d.date.value);
-    }
-    if (d.comment.present) {
-      map['comment'] = Variable<String, StringType>(d.comment.value);
-    }
-    return map;
   }
 
   @override
@@ -1576,28 +1748,40 @@ class PlaylistEntry extends DataClass implements Insertable<PlaylistEntry> {
       name: stringType.mapFromDatabaseResponse(data['${effectivePrefix}name']),
     );
   }
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || id != null) {
+      map['id'] = Variable<String>(id);
+    }
+    if (!nullToAbsent || name != null) {
+      map['name'] = Variable<String>(name);
+    }
+    return map;
+  }
+
+  PlaylistTableCompanion toCompanion(bool nullToAbsent) {
+    return PlaylistTableCompanion(
+      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
+      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
+    );
+  }
+
   factory PlaylistEntry.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
     return PlaylistEntry(
       id: serializer.fromJson<String>(json['id']),
       name: serializer.fromJson<String>(json['name']),
     );
   }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
-    return {
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
       'id': serializer.toJson<String>(id),
       'name': serializer.toJson<String>(name),
     };
-  }
-
-  @override
-  PlaylistTableCompanion createCompanion(bool nullToAbsent) {
-    return PlaylistTableCompanion(
-      id: id == null && nullToAbsent ? const Value.absent() : Value(id),
-      name: name == null && nullToAbsent ? const Value.absent() : Value(name),
-    );
   }
 
   PlaylistEntry copyWith({String id, String name}) => PlaylistEntry(
@@ -1616,7 +1800,7 @@ class PlaylistEntry extends DataClass implements Insertable<PlaylistEntry> {
   @override
   int get hashCode => $mrjf($mrjc(id.hashCode, name.hashCode));
   @override
-  bool operator ==(other) =>
+  bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is PlaylistEntry &&
           other.id == this.id &&
@@ -1635,11 +1819,33 @@ class PlaylistTableCompanion extends UpdateCompanion<PlaylistEntry> {
     @required String name,
   })  : id = Value(id),
         name = Value(name);
+  static Insertable<PlaylistEntry> custom({
+    Expression<String> id,
+    Expression<String> name,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (name != null) 'name': name,
+    });
+  }
+
   PlaylistTableCompanion copyWith({Value<String> id, Value<String> name}) {
     return PlaylistTableCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    return map;
   }
 }
 
@@ -1681,18 +1887,19 @@ class $PlaylistTableTable extends PlaylistTable
   @override
   final String actualTableName = 'Playlist';
   @override
-  VerificationContext validateIntegrity(PlaylistTableCompanion d,
+  VerificationContext validateIntegrity(Insertable<PlaylistEntry> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.id.present) {
-      context.handle(_idMeta, id.isAcceptableValue(d.id.value, _idMeta));
-    } else if (id.isRequired && isInserting) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id'], _idMeta));
+    } else if (isInserting) {
       context.missing(_idMeta);
     }
-    if (d.name.present) {
+    if (data.containsKey('name')) {
       context.handle(
-          _nameMeta, name.isAcceptableValue(d.name.value, _nameMeta));
-    } else if (name.isRequired && isInserting) {
+          _nameMeta, name.isAcceptableOrUnknown(data['name'], _nameMeta));
+    } else if (isInserting) {
       context.missing(_nameMeta);
     }
     return context;
@@ -1704,18 +1911,6 @@ class $PlaylistTableTable extends PlaylistTable
   PlaylistEntry map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return PlaylistEntry.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(PlaylistTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.id.present) {
-      map['id'] = Variable<String, StringType>(d.id.value);
-    }
-    if (d.name.present) {
-      map['name'] = Variable<String, StringType>(d.name.value);
-    }
-    return map;
   }
 
   @override
@@ -1741,24 +1936,19 @@ class PlaylistShaderEntry extends DataClass
           .mapFromDatabaseResponse(data['${effectivePrefix}shader_id']),
     );
   }
-  factory PlaylistShaderEntry.fromJson(Map<String, dynamic> json,
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
-    return PlaylistShaderEntry(
-      playlistId: serializer.fromJson<String>(json['playlistId']),
-      shaderId: serializer.fromJson<String>(json['shaderId']),
-    );
-  }
   @override
-  Map<String, dynamic> toJson(
-      {ValueSerializer serializer = const ValueSerializer.defaults()}) {
-    return {
-      'playlistId': serializer.toJson<String>(playlistId),
-      'shaderId': serializer.toJson<String>(shaderId),
-    };
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (!nullToAbsent || playlistId != null) {
+      map['playlist_id'] = Variable<String>(playlistId);
+    }
+    if (!nullToAbsent || shaderId != null) {
+      map['shader_id'] = Variable<String>(shaderId);
+    }
+    return map;
   }
 
-  @override
-  PlaylistShaderTableCompanion createCompanion(bool nullToAbsent) {
+  PlaylistShaderTableCompanion toCompanion(bool nullToAbsent) {
     return PlaylistShaderTableCompanion(
       playlistId: playlistId == null && nullToAbsent
           ? const Value.absent()
@@ -1767,6 +1957,23 @@ class PlaylistShaderEntry extends DataClass
           ? const Value.absent()
           : Value(shaderId),
     );
+  }
+
+  factory PlaylistShaderEntry.fromJson(Map<String, dynamic> json,
+      {ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return PlaylistShaderEntry(
+      playlistId: serializer.fromJson<String>(json['playlistId']),
+      shaderId: serializer.fromJson<String>(json['shaderId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer serializer}) {
+    serializer ??= moorRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'playlistId': serializer.toJson<String>(playlistId),
+      'shaderId': serializer.toJson<String>(shaderId),
+    };
   }
 
   PlaylistShaderEntry copyWith({String playlistId, String shaderId}) =>
@@ -1786,7 +1993,7 @@ class PlaylistShaderEntry extends DataClass
   @override
   int get hashCode => $mrjf($mrjc(playlistId.hashCode, shaderId.hashCode));
   @override
-  bool operator ==(other) =>
+  bool operator ==(dynamic other) =>
       identical(this, other) ||
       (other is PlaylistShaderEntry &&
           other.playlistId == this.playlistId &&
@@ -1806,12 +2013,34 @@ class PlaylistShaderTableCompanion
     @required String shaderId,
   })  : playlistId = Value(playlistId),
         shaderId = Value(shaderId);
+  static Insertable<PlaylistShaderEntry> custom({
+    Expression<String> playlistId,
+    Expression<String> shaderId,
+  }) {
+    return RawValuesInsertable({
+      if (playlistId != null) 'playlist_id': playlistId,
+      if (shaderId != null) 'shader_id': shaderId,
+    });
+  }
+
   PlaylistShaderTableCompanion copyWith(
       {Value<String> playlistId, Value<String> shaderId}) {
     return PlaylistShaderTableCompanion(
       playlistId: playlistId ?? this.playlistId,
       shaderId: shaderId ?? this.shaderId,
     );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (playlistId.present) {
+      map['playlist_id'] = Variable<String>(playlistId.value);
+    }
+    if (shaderId.present) {
+      map['shader_id'] = Variable<String>(shaderId.value);
+    }
+    return map;
   }
 }
 
@@ -1847,19 +2076,23 @@ class $PlaylistShaderTableTable extends PlaylistShaderTable
   @override
   final String actualTableName = 'PlaylistShader';
   @override
-  VerificationContext validateIntegrity(PlaylistShaderTableCompanion d,
+  VerificationContext validateIntegrity(
+      Insertable<PlaylistShaderEntry> instance,
       {bool isInserting = false}) {
     final context = VerificationContext();
-    if (d.playlistId.present) {
-      context.handle(_playlistIdMeta,
-          playlistId.isAcceptableValue(d.playlistId.value, _playlistIdMeta));
-    } else if (playlistId.isRequired && isInserting) {
+    final data = instance.toColumns(true);
+    if (data.containsKey('playlist_id')) {
+      context.handle(
+          _playlistIdMeta,
+          playlistId.isAcceptableOrUnknown(
+              data['playlist_id'], _playlistIdMeta));
+    } else if (isInserting) {
       context.missing(_playlistIdMeta);
     }
-    if (d.shaderId.present) {
+    if (data.containsKey('shader_id')) {
       context.handle(_shaderIdMeta,
-          shaderId.isAcceptableValue(d.shaderId.value, _shaderIdMeta));
-    } else if (shaderId.isRequired && isInserting) {
+          shaderId.isAcceptableOrUnknown(data['shader_id'], _shaderIdMeta));
+    } else if (isInserting) {
       context.missing(_shaderIdMeta);
     }
     return context;
@@ -1871,18 +2104,6 @@ class $PlaylistShaderTableTable extends PlaylistShaderTable
   PlaylistShaderEntry map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
     return PlaylistShaderEntry.fromData(data, _db, prefix: effectivePrefix);
-  }
-
-  @override
-  Map<String, Variable> entityToSql(PlaylistShaderTableCompanion d) {
-    final map = <String, Variable>{};
-    if (d.playlistId.present) {
-      map['playlist_id'] = Variable<String, StringType>(d.playlistId.value);
-    }
-    if (d.shaderId.present) {
-      map['shader_id'] = Variable<String, StringType>(d.shaderId.value);
-    }
-    return map;
   }
 
   @override
@@ -1913,8 +2134,6 @@ abstract class _$MoorStore extends GeneratedDatabase {
   UserDao get userDao => _userDao ??= UserDao(this as MoorStore);
   AccountDao _accountDao;
   AccountDao get accountDao => _accountDao ??= AccountDao(this as MoorStore);
-  AccountDao _accountDao;
-  AccountDao get accountDao => _accountDao ??= AccountDao(this as MoorStore);
   ShaderDao _shaderDao;
   ShaderDao get shaderDao => _shaderDao ??= ShaderDao(this as MoorStore);
   CommentDao _commentDao;
@@ -1923,7 +2142,9 @@ abstract class _$MoorStore extends GeneratedDatabase {
   PlaylistDao get playlistDao =>
       _playlistDao ??= PlaylistDao(this as MoorStore);
   @override
-  List<TableInfo> get allTables => [
+  Iterable<TableInfo> get allTables => allSchemaEntities.whereType<TableInfo>();
+  @override
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
         userTable,
         accountTable,
         shaderTable,

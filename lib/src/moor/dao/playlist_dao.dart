@@ -64,7 +64,7 @@ class PlaylistDao extends DatabaseAccessor<MoorStore> with _$PlaylistDaoMixin {
   Future<void> save(Playlist playlist) {
     return transaction(() async {
       await into(playlistTable)
-          .insert(_toPlaylistEntry(playlist), orReplace: true);
+          .insert(_toPlaylistEntry(playlist), mode: InsertMode.insertOrReplace);
 
       await (delete(playlistShaderTable)
             ..where((entry) => entry.playlistId.equals(playlist.id)))

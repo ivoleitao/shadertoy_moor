@@ -7,5 +7,5 @@ part of 'comment_dao.dart';
 // **************************************************************************
 
 mixin _$CommentDaoMixin on DatabaseAccessor<MoorStore> {
-  $CommentTableTable get commentTable => db.commentTable;
+  $CommentTableTable get commentTable => attachedDatabase.commentTable;
 }

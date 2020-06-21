@@ -55,7 +55,7 @@ class ShaderDao extends DatabaseAccessor<MoorStore> with _$ShaderDaoMixin {
   }
 
   Future<List<String>> findAllIds() async {
-    return shaderIdQuery().get();
+    return shaderId().get();
   }
 
   Future<List<ShaderEntry>> _getQuery(
@@ -219,6 +219,7 @@ class ShaderDao extends DatabaseAccessor<MoorStore> with _$ShaderDaoMixin {
   }
 
   Future<void> save(Shader shader) {
-    return into(shaderTable).insert(_toShaderEntry(shader), orReplace: true);
+    return into(shaderTable)
+        .insert(_toShaderEntry(shader), mode: InsertMode.insertOrReplace);
   }
 }

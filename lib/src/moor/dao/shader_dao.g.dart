@@ -7,20 +7,13 @@ part of 'shader_dao.dart';
 // **************************************************************************
 
 mixin _$ShaderDaoMixin on DatabaseAccessor<MoorStore> {
-  $ShaderTableTable get shaderTable => db.shaderTable;
-  $PlaylistTableTable get playlistTable => db.playlistTable;
-  $PlaylistShaderTableTable get playlistShaderTable => db.playlistShaderTable;
-  Selectable<String> shaderIdQuery() {
-    return customSelectQuery('SELECT id FROM Shader',
+  $ShaderTableTable get shaderTable => attachedDatabase.shaderTable;
+  $PlaylistTableTable get playlistTable => attachedDatabase.playlistTable;
+  $PlaylistShaderTableTable get playlistShaderTable =>
+      attachedDatabase.playlistShaderTable;
+  Selectable<String> shaderId() {
+    return customSelect('SELECT id FROM Shader',
         variables: [],
         readsFrom: {shaderTable}).map((QueryRow row) => row.readString('id'));
-  }
-
-  Future<List<String>> shaderId() {
-    return shaderIdQuery().get();
-  }
-
-  Stream<List<String>> watchShaderId() {
-    return shaderIdQuery().watch();
   }
 }

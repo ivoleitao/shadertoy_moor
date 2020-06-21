@@ -38,6 +38,7 @@ class UserDao extends DatabaseAccessor<MoorStore> with _$UserDaoMixin {
   }
 
   Future<int> save(User user) {
-    return into(userTable).insert(_toEntry(user), orReplace: true);
+    return into(userTable)
+        .insert(_toEntry(user), mode: InsertMode.insertOrReplace);
   }
 }
