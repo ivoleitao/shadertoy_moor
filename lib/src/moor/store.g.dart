@@ -240,6 +240,19 @@ class UserTableCompanion extends UpdateCompanion<UserEntry> {
     }
     return map;
   }
+
+  @override
+  String toString() {
+    return (StringBuffer('UserTableCompanion(')
+          ..write('id: $id, ')
+          ..write('picture: $picture, ')
+          ..write('memberSince: $memberSince, ')
+          ..write('shaders: $shaders, ')
+          ..write('comments: $comments, ')
+          ..write('about: $about')
+          ..write(')'))
+        .toString();
+  }
 }
 
 class $UserTableTable extends UserTable
@@ -610,6 +623,19 @@ class AccountTableCompanion extends UpdateCompanion<AccountEntry> {
     }
     return map;
   }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountTableCompanion(')
+          ..write('name: $name, ')
+          ..write('type: $type, ')
+          ..write('system: $system, ')
+          ..write('password: $password, ')
+          ..write('displayName: $displayName, ')
+          ..write('picture: $picture')
+          ..write(')'))
+        .toString();
+  }
 }
 
 class $AccountTableTable extends AccountTable
@@ -741,7 +767,7 @@ class $AccountTableTable extends AccountTable
   }
 
   @override
-  Set<GeneratedColumn> get $primaryKey => {name};
+  Set<GeneratedColumn> get $primaryKey => {name, type};
   @override
   AccountEntry map(Map<String, dynamic> data, {String tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : null;
@@ -1180,6 +1206,26 @@ class ShaderTableCompanion extends UpdateCompanion<ShaderEntry> {
       map['render_passes_json'] = Variable<String>(renderPassesJson.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ShaderTableCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('version: $version, ')
+          ..write('name: $name, ')
+          ..write('date: $date, ')
+          ..write('description: $description, ')
+          ..write('views: $views, ')
+          ..write('likes: $likes, ')
+          ..write('publishStatus: $publishStatus, ')
+          ..write('flags: $flags, ')
+          ..write('tagsJson: $tagsJson, ')
+          ..write('liked: $liked, ')
+          ..write('renderPassesJson: $renderPassesJson')
+          ..write(')'))
+        .toString();
   }
 }
 
@@ -1628,6 +1674,17 @@ class CommentTableCompanion extends UpdateCompanion<CommentEntry> {
     }
     return map;
   }
+
+  @override
+  String toString() {
+    return (StringBuffer('CommentTableCompanion(')
+          ..write('shaderId: $shaderId, ')
+          ..write('userId: $userId, ')
+          ..write('date: $date, ')
+          ..write('comment: $comment')
+          ..write(')'))
+        .toString();
+  }
 }
 
 class $CommentTableTable extends CommentTable
@@ -1847,6 +1904,15 @@ class PlaylistTableCompanion extends UpdateCompanion<PlaylistEntry> {
     }
     return map;
   }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlaylistTableCompanion(')
+          ..write('id: $id, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
 }
 
 class $PlaylistTableTable extends PlaylistTable
@@ -2041,6 +2107,15 @@ class PlaylistShaderTableCompanion
       map['shader_id'] = Variable<String>(shaderId.value);
     }
     return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PlaylistShaderTableCompanion(')
+          ..write('playlistId: $playlistId, ')
+          ..write('shaderId: $shaderId')
+          ..write(')'))
+        .toString();
   }
 }
 

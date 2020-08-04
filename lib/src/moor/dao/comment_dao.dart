@@ -34,11 +34,13 @@ class CommentDao extends DatabaseAccessor<MoorStore> with _$CommentDaoMixin {
   }
 
   List<CommentEntry> _toCommentEntries(List<Comment> comments) {
-    return comments.map((comment) => CommentEntry(
-        shaderId: comment.shaderId,
-        userId: comment.userId,
-        date: comment.date,
-        comment: comment.text));
+    return comments
+        .map((comment) => CommentEntry(
+            shaderId: comment.shaderId,
+            userId: comment.userId,
+            date: comment.date,
+            comment: comment.text))
+        .toList();
   }
 
   Future<void> save(List<Comment> comments) {

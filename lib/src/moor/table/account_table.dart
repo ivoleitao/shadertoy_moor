@@ -13,5 +13,5 @@ class AccountTable extends Table {
   TextColumn get picture => text().nullable()();
 
   @override
-  Set<Column> get primaryKey => {name};
+  Set<Column> get primaryKey => {name, type};
 }
