@@ -13,9 +13,17 @@ part 'shader_dao.g.dart';
 @UseDao(
     tables: [ShaderTable, PlaylistTable, PlaylistShaderTable],
     queries: {'shaderId': 'SELECT id FROM Shader'})
+
+/// Shader data access object
 class ShaderDao extends DatabaseAccessor<MoorStore> with _$ShaderDaoMixin {
+  /// Creates a [ShaderDao]
+  ///
+  /// * [store]: A pre-initialized [MoorStore] store
   ShaderDao(MoorStore store) : super(store);
 
+  /// Converts a [ShaderEntry] into a [Info]
+  ///
+  /// * [entry]: The entry to convert
   Info _toInfoEntity(ShaderEntry entry) {
     return Info(
         id: entry.id,
@@ -25,54 +33,75 @@ class ShaderDao extends DatabaseAccessor<MoorStore> with _$ShaderDaoMixin {
         userId: entry.userId,
         description: entry.description,
         likes: entry.likes,
-        publishStatus:
-            EnumToString.fromString(PublishStatus.values, entry.publishStatus),
+        privacy: EnumToString.fromString(ShaderPrivacy.values, entry.privacy),
         flags: entry.flags,
-        tags: (jsonDecode(entry.tagsJson) as List<dynamic>).cast<String>(),
-        hasLiked: entry.liked);
+        tags: (jsonDecode(entry.tagsJson) as List<dynamic>)
+            .map((e) => e as String)
+            .toList());
   }
 
+  /// Converts a [ShaderEntry] into a [Shader]
+  ///
+  /// * [entry]: The entry to convert
   Shader _toShaderEntity(ShaderEntry entry) {
     return entry != null
         ? Shader(
             version: entry.version,
             info: _toInfoEntity(entry),
             renderPasses: (jsonDecode(entry.renderPassesJson) as List<dynamic>)
-                .cast<RenderPass>())
+                .map((e) => RenderPass.fromJson(e))
+                .toList())
         : null;
   }
 
-  Future<bool> exists(String shaderId) async {
+  /// Checks if a shader exists
+  ///
+  /// * [shaderId]: The shader id
+  ///
+  /// Returns `true` if the shader exists
+  Future<bool> exists(String shaderId) {
     return (select(shaderTable)..where((entry) => entry.id.equals(shaderId)))
-            .getSingle() !=
-        null;
+        .getSingle()
+        .then((value) => value != null);
   }
 
-  Future<Shader> findById(String shaderId) async {
+  /// Returns a [Shader] with id [shaderId]
+  ///
+  /// * [shaderId]: The id of the shader
+  Future<Shader> findById(String shaderId) {
     return (select(shaderTable)..where((entry) => entry.id.equals(shaderId)))
         .getSingle()
         .then(_toShaderEntity);
   }
 
-  Future<List<String>> findAllIds() async {
+  /// Returns all the shader ids
+  Future<List<String>> findAllIds() {
     return shaderId().get();
   }
 
-  Future<List<ShaderEntry>> _getQuery(
+  /// Executes a shader query
+  ///
+  /// * [term]: Shaders that have [term] in the name or in description
+  /// * [userId]: The user id of the author of the shader
+  /// * [tags]: A set of tag filters
+  /// * [sort]: The sort order of the shaders
+  /// * [from]: A 0 based index for results returned
+  /// * [num]: The total number of results
+  Future<List<ShaderEntry>> _getShaderQuery(
       {String term,
       String userId,
       Set<String> tags,
       Sort sort,
       int from,
-      int num}) async {
+      int num}) {
     var hasTerm = term != null && term.isNotEmpty;
-    var hasUserId = userId != null && userId.isEmpty;
+    var hasUserId = userId != null && userId.isNotEmpty;
     var hasTags = tags != null && tags.isNotEmpty;
 
     final query = select(shaderTable);
     if (hasTerm || hasUserId || hasTags) {
       query.where((entry) {
-        var exp;
+        Expression<bool> exp;
 
         if (hasTerm) {
           var termExp = entry.name.like(term);
@@ -85,16 +114,11 @@ class ShaderDao extends DatabaseAccessor<MoorStore> with _$ShaderDaoMixin {
         }
 
         if (hasTags) {
-          var tagsExp;
+          var tagExp;
           for (var tag in tags) {
-            if (tagsExp == null) {
-              tagsExp = entry.tagsJson.like('%${tag}%');
-            } else {
-              tagsExp = tagsExp | entry.tagsJson.like('%${tag}%');
-            }
+            tagExp = entry.tagsJson.like('%${tag}%');
+            exp = (exp == null ? tagExp : exp & tagExp);
           }
-
-          exp = (exp == null ? tagsExp : exp & tagsExp);
         }
 
         return exp;
@@ -114,12 +138,17 @@ class ShaderDao extends DatabaseAccessor<MoorStore> with _$ShaderDaoMixin {
               expression: shaderTable.views, mode: OrderingMode.desc),
         if (sort == Sort.love)
           (u) => OrderingTerm(
-              expression: shaderTable.likes, mode: OrderingMode.desc)
+              expression: shaderTable.likes, mode: OrderingMode.desc),
+        if (sort == Sort.hot)
+          (u) => OrderingTerm(
+              expression: CustomExpression<RealType>(
+                  "(cast(views as real) / (strftime('%s','now') - date))"),
+              mode: OrderingMode.desc)
       ]);
     }
 
     from ??= 0;
-    num ??= -1;
+    num ??= 0;
     if (from > 0 || num > 0) {
       query.limit(num, offset: from);
     }
@@ -127,79 +156,122 @@ class ShaderDao extends DatabaseAccessor<MoorStore> with _$ShaderDaoMixin {
     return query.get();
   }
 
+  /// Converts a list of [ShaderEntry] into a list of shader ids
+  ///
+  /// * [entries]: The list of entries to convert
   List<String> _toShaderIds(List<ShaderEntry> entries) {
-    return entries.map((ShaderEntry entry) => entry.id);
+    return entries.map((ShaderEntry entry) => entry.id).toList();
   }
 
-  Future<List<String>> findIdsByTerm(
-      {String term, Set<String> filters, Sort sort, int from, int num}) async {
-    return _getQuery(
-            term: term, tags: filters, sort: sort, from: from, num: num)
-        .then(_toShaderIds);
-  }
-
-  Future<List<String>> findIdsByUser(
-      {String userId,
+  /// Query shader ids
+  ///
+  /// * [term]: Shaders that have [term] in the name or in description
+  /// * [userId]: The user id of the author of the shader
+  /// * [filters]: A set of tag filters
+  /// * [sort]: The sort order of the shaders
+  /// * [from]: A 0 based index for results returned
+  /// * [num]: The total number of results
+  Future<List<String>> findIds(
+      {String term,
+      String userId,
       Set<String> filters,
       Sort sort,
       int from,
-      int num}) async {
-    return _getQuery(
-            userId: userId, tags: filters, sort: sort, from: from, num: num)
+      int num}) {
+    return _getShaderQuery(
+            term: term,
+            userId: userId,
+            tags: filters,
+            sort: sort,
+            from: from,
+            num: num)
         .then(_toShaderIds);
   }
 
-  List<Shader> _toEntities(List<ShaderEntry> entries) {
-    return entries.map(_toShaderEntity);
+  /// Converts a list of [ShaderEntry] into a list of [Shader]
+  ///
+  /// * [entries]: The list of entries to convert
+  List<Shader> _toShaderEntities(List<ShaderEntry> entries) {
+    return entries.map((entry) => _toShaderEntity(entry)).toList();
   }
 
-  Future<List<Shader>> findByTerm(
-      {String term, Set<String> filters, Sort sort, int from, int num}) async {
-    return _getQuery(
-            term: term, tags: filters, sort: sort, from: from, num: num)
-        .then(_toEntities);
-  }
-
-  Future<List<Shader>> findByUser(
-      {String userId,
+  /// Query shaders
+  ///
+  /// * [term]: Shaders that have [term] in the name or in description
+  /// * [userId]: The user id of the author of the shader
+  /// * [filters]: A set of tag filters
+  /// * [sort]: The sort order of the shaders
+  /// * [from]: A 0 based index for results returned
+  /// * [num]: The total number of results
+  Future<List<Shader>> find(
+      {String term,
+      String userId,
       Set<String> filters,
       Sort sort,
       int from,
-      int num}) async {
-    return _getQuery(
-            userId: userId, tags: filters, sort: sort, from: from, num: num)
-        .then(_toEntities);
+      int num}) {
+    return _getShaderQuery(
+            term: term,
+            userId: userId,
+            tags: filters,
+            sort: sort,
+            from: from,
+            num: num)
+        .then(_toShaderEntities);
   }
 
-  Future<List<ShaderEntry>> _getShaderPlaylistQuery(String playlistId,
-      {int from, int num}) async {
+  /// Returns a list of playlist shaders
+  ///
+  /// * [playlistId]: The id of the playlist
+  /// * [from]: A 0 based index for results returned
+  /// * [num]: The total number of results
+  Future<List<ShaderEntry>> _getPlaylistShaderQuery(String playlistId,
+      {int from, int num}) {
     final query = select(shaderTable).join([
       innerJoin(playlistShaderTable,
           playlistShaderTable.shaderId.equalsExp(shaderTable.id))
-    ]);
+    ])
+      ..where(playlistShaderTable.playlistId.equals(playlistId));
 
     from ??= 0;
-    num ??= -1;
+    num ??= 0;
     if (from > 0 || num > 0) {
       query.limit(num, offset: from);
     }
+
+    query.orderBy([
+      OrderingTerm(
+          expression: playlistShaderTable.order, mode: OrderingMode.asc)
+    ]);
 
     return query.get().then(
         (results) => results.map((tr) => tr.readTable(shaderTable)).toList());
   }
 
+  /// Finds playlist shader ids
+  ///
+  /// * [playlistId]: The id of the playlist
+  /// * [from]: A 0 based index for results returned
+  /// * [num]: The total number of results
   Future<List<String>> findIdsByPlaylist(String playlistId,
-      {int from, int num}) async {
-    return _getShaderPlaylistQuery(playlistId, from: from, num: num)
+      {int from, int num}) {
+    return _getPlaylistShaderQuery(playlistId, from: from, num: num)
         .then(_toShaderIds);
   }
 
-  Future<List<Shader>> findByPlaylist(String playlistId,
-      {int from, int num}) async {
-    return _getShaderPlaylistQuery(playlistId, from: from, num: num)
-        .then(_toEntities);
+  /// Finds playlist shaders
+  ///
+  /// * [playlistId]: The id of the playlist
+  /// * [from]: A 0 based index for results returned
+  /// * [num]: The total number of results
+  Future<List<Shader>> findByPlaylist(String playlistId, {int from, int num}) {
+    return _getPlaylistShaderQuery(playlistId, from: from, num: num)
+        .then(_toShaderEntities);
   }
 
+  /// Converts a [Shader] into a [ShaderEntry]
+  ///
+  /// * [entity]: The entity to convert
   ShaderEntry _toShaderEntry(Shader entity) {
     return ShaderEntry(
         id: entity.info.id,
@@ -210,16 +282,35 @@ class ShaderDao extends DatabaseAccessor<MoorStore> with _$ShaderDaoMixin {
         description: entity.info.description,
         views: entity.info.views,
         likes: entity.info.likes,
-        publishStatus: EnumToString.parse(entity.info.publishStatus),
+        privacy: EnumToString.convertToString(entity.info.privacy),
         flags: entity.info.flags,
         tagsJson: json.encode(entity.info.tags),
-        liked: entity.info.hasLiked,
         renderPassesJson: json.encode(
             entity.renderPasses.map((RenderPass rp) => rp.toJson()).toList()));
   }
 
+  /// Saves a [Shader]
+  ///
+  /// * [shader]: The [Shader] to save
+  ///
+  /// Returns the rowid of the inserted row
   Future<void> save(Shader shader) {
     return into(shaderTable)
         .insert(_toShaderEntry(shader), mode: InsertMode.insertOrReplace);
+  }
+
+  /// Converts a list of [Shader] into a list of [ShaderEntry]
+  ///
+  /// * [shaders]: The list of [Shader] to convert
+  List<ShaderEntry> _toShaderEntries(List<Shader> shaders) {
+    return shaders.map((shader) => _toShaderEntry(shader)).toList();
+  }
+
+  /// Saves a list of [Shader]
+  ///
+  /// * [shaders]: The list of [Shader] to save
+  Future<void> saveAll(List<Shader> shaders) {
+    return batch((b) => b.insertAll(shaderTable, _toShaderEntries(shaders),
+        mode: InsertMode.insertOrReplace));
   }
 }
