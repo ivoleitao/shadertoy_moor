@@ -11,7 +11,7 @@ environment:
 dependencies:
   enum_to_string: ^1.0.14
   moor: ^3.4.0
-  shadertoy_api: ^1.0.5
+  shadertoy_api: ^1.0.7
   #shadertoy_api:
   #  path: ../shadertoy_api
 
@@ -22,3 +22,5 @@ dev_dependencies:
   test: ^1.15.7
   test_coverage: ^0.5.0
   moor_generator: ^3.4.0
+
+scripts: derry.yaml
