@@ -5,7 +5,7 @@ import 'package:shadertoy_moor/src/moor/table/user_table.dart';
 
 part 'user_dao.g.dart';
 
-@UseDao(tables: [UserTable])
+@UseDao(tables: [UserTable], queries: {'userId': 'SELECT id FROM User'})
 
 /// User data access object
 class UserDao extends DatabaseAccessor<MoorStore> with _$UserDaoMixin {
@@ -36,6 +36,11 @@ class UserDao extends DatabaseAccessor<MoorStore> with _$UserDaoMixin {
     return (select(userTable)..where((t) => t.id.equals(userId)))
         .getSingle()
         .then(_toEntity);
+  }
+
+  /// Returns all the user ids
+  Future<List<String>> findAllIds() {
+    return userId().get();
   }
 
   /// Converts a [User] into a [UserEntry]

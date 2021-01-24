@@ -542,6 +542,8 @@ void main() {
       // act
       final response = await store.findAllShaderIds();
       // assert
+      expect(response, isNotNull);
+      expect(response.error, isNull);
       expect(response.ids,
           containsAll(findShaderIdsResponsetFixture(shaderPaths).ids));
     });
@@ -553,7 +555,7 @@ void main() {
       final options = newOptions();
       final store = newMoorStore(options);
       final userId = 'iq';
-      final user = userFixture('user/${userId}.json');
+      final user = userFixture('users/${userId}.json');
       // act
       final response = await store.saveUser(user);
       // assert
@@ -565,7 +567,7 @@ void main() {
       // prepare
       final options = newOptions();
       final store = newMoorStore(options);
-      final users = usersFixture(['user/iq.json', 'user/shaderflix.json']);
+      final users = usersFixture(['users/iq.json', 'users/shaderflix.json']);
       // act
       final response = await store.saveUsers(users);
       // assert
@@ -578,7 +580,7 @@ void main() {
       final options = newOptions();
       final store = newMoorStore(options);
       final userId = 'iq';
-      final originalUser = userFixture('user/${userId}.json');
+      final originalUser = userFixture('users/${userId}.json');
       final updatedUser = originalUser.copyWith(followers: 1);
       // act
       await store.saveUser(originalUser);
@@ -594,7 +596,7 @@ void main() {
       // prepare
       final options = newOptions();
       final store = newMoorStore(options);
-      final user = userFixture('user/iq.json');
+      final user = userFixture('users/iq.json');
       await store.saveUser(user);
       // act
       final response = await store.findUserById(user.id);
@@ -622,7 +624,7 @@ void main() {
       final options = newOptions();
       final store = newMoorStore(options);
       final userId = 'iq';
-      final user = userFixture('user/$userId.json');
+      final user = userFixture('users/$userId.json');
       await store.saveUser(user);
       final shaderPaths = [
         'shaders/clouds.json',
@@ -657,7 +659,7 @@ void main() {
       final options = newOptions();
       final store = newMoorStore(options);
       final userId = 'iq';
-      final user = userFixture('user/$userId.json');
+      final user = userFixture('users/$userId.json');
       await store.saveUser(user);
       final shaderPaths = [
         'shaders/clouds.json',
@@ -694,7 +696,7 @@ void main() {
       // prepare
       final options = newOptions();
       final store = newMoorStore(options);
-      final user = userFixture('user/iq.json');
+      final user = userFixture('users/iq.json');
       await store.saveUser(user);
       final shaderPaths = [
         'shaders/seascape.json',
@@ -710,6 +712,22 @@ void main() {
       expect(response.error, isNull);
       expect(response.ids,
           findShaderIdsResponsetFixture(shaderPaths.sublist(1)).ids);
+    });
+
+    test('Find all user ids', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final userPaths = ['users/iq.json', 'users/shaderflix.json'];
+      final users = usersFixture(userPaths);
+      await store.saveUsers(users);
+      // act
+      final response = await store.findAllUserIds();
+      // assert
+      expect(response, isNotNull);
+      expect(response.error, isNull);
+      expect(
+          response.ids, containsAll(findUserIdsResponseFixture(userPaths).ids));
     });
   });
 
@@ -746,12 +764,6 @@ void main() {
       await store.saveShaderComments(shaderId, updatedComments);
       final savedComments2 = await store.findCommentsByShaderId(shaderId);
       // assert
-      for (var i = 0; i < originalComments.length; i++) {
-        if (savedComments1.comments[i] != originalComments[i]) {
-          print('shit');
-        }
-      }
-
       expect(savedComments1.comments, originalComments);
       expect(savedComments2.comments, updatedComments);
     });

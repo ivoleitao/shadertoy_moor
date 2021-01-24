@@ -28,7 +28,7 @@ Add this to your `pubspec.yaml` (or create it):
 
 ```dart
 dependencies:
-    shadertoy_moor: ^1.0.0-dev.1
+    shadertoy_moor: ^1.0.0-dev.2
 ```
 
 Run the following command to install dependencies:

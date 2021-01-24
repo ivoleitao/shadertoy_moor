@@ -18,8 +18,17 @@ List<Shader> shadersFixture(List<String> paths) =>
 
 User userFixture(String path) => User.fromJson(jsonFixture(path));
 
+String userIdFixture(String path) => userFixture(path).id;
+
 List<User> usersFixture(List<String> paths) =>
     paths.map((p) => userFixture(p)).toList();
+
+FindUserIdsResponse findUserIdsResponseFixture(List<String> paths,
+        {int count, ResponseError error}) =>
+    FindUserIdsResponse(
+        count: count,
+        ids: paths.map((p) => userIdFixture(p)).toList(),
+        error: error);
 
 List<Comment> commentListFixture(String path) =>
     jsonListFixture(path).map((comment) => Comment.fromJson(comment)).toList();

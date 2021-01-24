@@ -261,6 +261,16 @@ class ShadertoyMoorStore extends ShadertoyBaseStore {
   }
 
   @override
+  Future<FindUserIdsResponse> findAllUserIds() {
+    return _catchSqlError<FindUserIdsResponse>(
+        store.userDao
+            .findAllIds()
+            .then((value) => FindUserIdsResponse(ids: value)),
+        (sqle) => FindUserIdsResponse(
+            error: _toResponseError(sqle, context: CONTEXT_SHADER)));
+  }
+
+  @override
   Future<SaveUserResponse> saveUser(User user) {
     return _catchSqlError<SaveUserResponse>(
         store.userDao.save(user).then((response) => SaveUserResponse()),
