@@ -1,5 +1,5 @@
 name: shadertoy_moor
-version: 1.0.0-dev.2
+version: 1.0.0
 description: >-
   A implementation of the shadertoy storage API using
   Moor as the storage backend
@@ -11,8 +11,8 @@ environment:
 dependencies:
   enum_to_string: ^1.0.14
   moor: ^3.4.0
-  shadertoy_api: ^1.0.9
-  #shadertoy_api:
+  shadertoy_api: ^1.0.13
+  # shadertoy_api:
   #  path: ../shadertoy_api
 
 dev_dependencies:

@@ -243,7 +243,7 @@ class ShadertoyMoorStore extends ShadertoyBaseStore {
   /// * [handle]: The error handling function
   Future<R> _catchSqlError<R extends APIResponse>(
       Future<R> future, R Function(SqliteException) handle) {
-    return ShadertoyClient.catchError<R, SqliteException>(
+    return catchError<R, SqliteException>(
         future, handle, options.errorHandling);
   }
 

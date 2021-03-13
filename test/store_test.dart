@@ -555,7 +555,7 @@ void main() {
       final options = newOptions();
       final store = newMoorStore(options);
       final userId = 'iq';
-      final user = userFixture('users/${userId}.json');
+      final user = userFixture('users/$userId.json');
       // act
       final response = await store.saveUser(user);
       // assert
@@ -580,7 +580,7 @@ void main() {
       final options = newOptions();
       final store = newMoorStore(options);
       final userId = 'iq';
-      final originalUser = userFixture('users/${userId}.json');
+      final originalUser = userFixture('users/$userId.json');
       final updatedUser = originalUser.copyWith(followers: 1);
       // act
       await store.saveUser(originalUser);
@@ -739,7 +739,7 @@ void main() {
       final shader = shaderFixture('shaders/elevated.json');
       final shaderId = shader.info.id;
       await store.saveShader(shader);
-      final comments = commentListFixture('comment/${shaderId}.json');
+      final comments = commentListFixture('comment/$shaderId.json');
       // act
       final response = await store.saveShaderComments(shaderId, comments);
       // assert
@@ -754,7 +754,7 @@ void main() {
       final shader = shaderFixture('shaders/elevated.json');
       final shaderId = shader.info.id;
       await store.saveShader(shader);
-      final originalComments = commentListFixture('comment/${shaderId}.json');
+      final originalComments = commentListFixture('comment/$shaderId.json');
       final updatedComments = originalComments
           .map((comment) => comment.copyWith(text: 'test'))
           .toList();
@@ -775,7 +775,7 @@ void main() {
       final options = newOptions();
       final store = newMoorStore(options);
       final playlistId = 'week';
-      final playlist = playlistFixture('playlist/${playlistId}.json');
+      final playlist = playlistFixture('playlist/$playlistId.json');
       // act
       final response = await store.savePlaylist(playlist);
       // assert
@@ -788,7 +788,7 @@ void main() {
       final options = newOptions();
       final store = newMoorStore(options);
       final playlistId = 'week';
-      final originalPlaylist = playlistFixture('playlist/${playlistId}.json');
+      final originalPlaylist = playlistFixture('playlist/$playlistId.json');
       final updatedPlaylist = originalPlaylist.copyWith(name: 'weekly');
       // act
       await store.savePlaylist(originalPlaylist);
@@ -827,7 +827,7 @@ void main() {
       ];
       final shaders = shadersFixture(shaderPaths);
       await store.saveShaders(shaders);
-      final playlist = playlistFixture('playlist/${playlistId}.json');
+      final playlist = playlistFixture('playlist/$playlistId.json');
       await store.savePlaylist(playlist);
       // act
       final response = await store.savePlaylistShaders(
@@ -847,7 +847,7 @@ void main() {
         'shaders/happy_jumping.json'
       ];
       final shaders = shadersFixture(shaderPaths);
-      final playlist = playlistFixture('playlist/${playlistId}.json');
+      final playlist = playlistFixture('playlist/$playlistId.json');
       await store.savePlaylist(playlist);
       // act
       final response = await store.savePlaylistShaders(
@@ -874,7 +874,7 @@ void main() {
       ];
       final shaders = shadersFixture(shaderPaths);
       await store.saveShaders(shaders);
-      final playlist = playlistFixture('playlist/${playlistId}.json');
+      final playlist = playlistFixture('playlist/$playlistId.json');
       await store.savePlaylist(playlist);
       // act
       final response = await store.savePlaylistShaders(
@@ -905,7 +905,7 @@ void main() {
       ];
       final shaders = shadersFixture(shaderPaths);
       await store.saveShaders(shaders);
-      final playlist = playlistFixture('playlist/${playlistId}.json');
+      final playlist = playlistFixture('playlist/$playlistId.json');
       await store.savePlaylist(playlist);
       await store.savePlaylistShaders(
           playlistId, shaders.map((shader) => shader.info.id).toList());
@@ -939,7 +939,7 @@ void main() {
       ];
       final shaders = shadersFixture(shaderPaths);
       await store.saveShaders(shaders);
-      final playlist = playlistFixture('playlist/${playlistId}.json');
+      final playlist = playlistFixture('playlist/$playlistId.json');
       await store.savePlaylist(playlist);
       await store.savePlaylistShaders(
           playlistId, shaders.map((shader) => shader.info.id).toList());
@@ -973,7 +973,7 @@ void main() {
       ];
       final shaders = shadersFixture(shaderPaths);
       await store.saveShaders(shaders);
-      final playlist = playlistFixture('playlist/${playlistId}.json');
+      final playlist = playlistFixture('playlist/$playlistId.json');
       await store.savePlaylist(playlist);
       await store.savePlaylistShaders(
           playlistId, shaders.map((shader) => shader.info.id).toList());
