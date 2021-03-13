@@ -1,5 +1,5 @@
 name: shadertoy_moor
-version: 1.0.0
+version: 1.0.1
 description: >-
   A implementation of the shadertoy storage API using
   Moor as the storage backend
