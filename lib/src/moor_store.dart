@@ -288,6 +288,17 @@ class ShadertoyMoorStore extends ShadertoyBaseStore {
   }
 
   @override
+  Future<DeleteUserResponse> deleteUserById(String userId) {
+    return _catchSqlError<DeleteUserResponse>(
+        store.userDao
+            .deleteById(userId)
+            .then((reponse) => DeleteUserResponse()),
+        (sqle) => DeleteUserResponse(
+            error:
+                _toResponseError(sqle, context: CONTEXT_USER, target: userId)));
+  }
+
+  @override
   Future<FindShaderResponse> findShaderById(String shaderId) {
     return _catchSqlError<FindShaderResponse>(
         store.shaderDao.findById(shaderId).then((value) => value != null
@@ -376,6 +387,30 @@ class ShadertoyMoorStore extends ShadertoyBaseStore {
   }
 
   @override
+  Future<DeleteShaderResponse> deleteShaderById(String shaderId) {
+    return _catchSqlError<DeleteShaderResponse>(
+        store.shaderDao
+            .deleteById(shaderId)
+            .then((reponse) => DeleteShaderResponse()),
+        (sqle) => DeleteShaderResponse(
+            error: _toResponseError(sqle,
+                context: CONTEXT_SHADER, target: shaderId)));
+  }
+
+  @override
+  Future<FindCommentResponse> findCommentById(String commentId) {
+    return _catchSqlError<FindCommentResponse>(
+        store.commentDao.findById(commentId).then((value) => value != null
+            ? FindCommentResponse(comment: value)
+            : FindCommentResponse(
+                error: ResponseError.notFound(
+                    context: CONTEXT_COMMENT, target: commentId))),
+        (sqle) => FindCommentResponse(
+            error: _toResponseError(sqle,
+                context: CONTEXT_COMMENT, target: commentId)));
+  }
+
+  @override
   Future<FindCommentsResponse> findCommentsByShaderId(String shaderId) {
     return _catchSqlError<FindCommentsResponse>(
         store.commentDao.findByShaderId(shaderId).then((results) =>
@@ -400,6 +435,17 @@ class ShadertoyMoorStore extends ShadertoyBaseStore {
         (sqle) => SaveShaderCommentsResponse(
             error: _toResponseError(sqle,
                 context: CONTEXT_COMMENT, target: shaderId)));
+  }
+
+  @override
+  Future<DeleteCommentResponse> deleteCommentById(String commentId) {
+    return _catchSqlError<DeleteCommentResponse>(
+        store.commentDao
+            .deleteById(commentId)
+            .then((reponse) => DeleteCommentResponse()),
+        (sqle) => DeleteCommentResponse(
+            error: _toResponseError(sqle,
+                context: CONTEXT_COMMENT, target: commentId)));
   }
 
   @override
@@ -524,6 +570,17 @@ class ShadertoyMoorStore extends ShadertoyBaseStore {
             .savePlaylistShaders(playlistId, shaderIds)
             .then((reponse) => SavePlaylistShadersResponse()),
         (sqle) => SavePlaylistShadersResponse(
+            error: _toResponseError(sqle,
+                context: CONTEXT_PLAYLIST, target: playlistId)));
+  }
+
+  @override
+  Future<DeletePlaylistResponse> deletePlaylistById(String playlistId) {
+    return _catchSqlError<DeletePlaylistResponse>(
+        store.playlistDao
+            .deleteById(playlistId)
+            .then((reponse) => DeletePlaylistResponse()),
+        (sqle) => DeletePlaylistResponse(
             error: _toResponseError(sqle,
                 context: CONTEXT_PLAYLIST, target: playlistId)));
   }

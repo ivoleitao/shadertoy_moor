@@ -11,8 +11,8 @@ class CommentTable extends Table {
   TextColumn get id => text()();
 
   /// The shader id
-  TextColumn get shaderId =>
-      text().customConstraint('NOT NULL REFERENCES Shader(id)')();
+  TextColumn get shaderId => text()
+      .customConstraint('NOT NULL REFERENCES Shader(id) ON DELETE CASCADE')();
 
   /// The user id
   TextColumn get userId => text()();

@@ -15,13 +15,18 @@ This package implements the storage APIs defined in the [shadertoy_api](https://
 
 The following methods are implemented:
 
+* `Find all user ids`
 * `Save user`
 * `Save users`
+* `Delete user by id`
 * `Save shader`
 * `Save shaders`
+* `Delete shader by id`
 * `Save shader comments`
 * `Save playlist`
 * `Save playlist shaders`
+* `Delete playlist by id`
+
 ## Getting Started
 
 Add this to your `pubspec.yaml` (or create it):

@@ -26,19 +26,35 @@ class CommentDao extends DatabaseAccessor<MoorStore> with _$CommentDaoMixin {
         .then((comments) => comments.isNotEmpty);
   }
 
-  /// Converts a list of [CommentEntry] into a list of [Comment]
+  /// Converts a [CommentEntry] into a [Comment]
   ///
-  /// * [entries]: The list of entries to convert
-  List<Comment> _mapCommentEntity(List<CommentEntry> entries) {
-    return entries
-        .map((CommentEntry entry) => Comment(
+  /// * [entry]: The entry to convert
+  Comment _toCommentEntity(CommentEntry entry) {
+    return entry != null
+        ? Comment(
             id: entry.id,
             userId: entry.userId,
             picture: entry.picture,
             date: entry.date,
             text: entry.comment,
-            hidden: entry.hidden))
-        .toList();
+            hidden: entry.hidden)
+        : null;
+  }
+
+  /// Converts a list of [CommentEntry] into a list of [Comment]
+  ///
+  /// * [entries]: The list of entries to convert
+  List<Comment> _toCommentEntities(List<CommentEntry> entries) {
+    return entries.map(_toCommentEntity).toList();
+  }
+
+  /// Returns a [Comment] with id [commentId]
+  ///
+  /// * [commentId]: The id of the comment
+  Future<Comment> findById(String commentId) {
+    return (select(commentTable)..where((entry) => entry.id.equals(commentId)))
+        .getSingle()
+        .then(_toCommentEntity);
   }
 
   /// Get's the comments of shader by [shaderId]
@@ -48,7 +64,7 @@ class CommentDao extends DatabaseAccessor<MoorStore> with _$CommentDaoMixin {
     return (select(commentTable)
           ..where((entry) => entry.shaderId.equals(shaderId)))
         .get()
-        .then(_mapCommentEntity);
+        .then(_toCommentEntities);
   }
 
   /// Converts a list of [Comment] into a list of [CommentEntry]
@@ -71,11 +87,20 @@ class CommentDao extends DatabaseAccessor<MoorStore> with _$CommentDaoMixin {
 
   /// Saves the comments of a shader
   ///
-  /// * [shaderId]: The id of the sahder
+  /// * [shaderId]: The id of the shader
   /// * [comments]: The list of comments to save
   Future<void> save(String shaderId, List<Comment> comments) {
     return batch((b) => b.insertAll(
         commentTable, _toCommentEntries(shaderId, comments),
         mode: InsertMode.insertOrReplace));
+  }
+
+  /// Deletes a [Comment] by [commentId]
+  ///
+  /// * [commentId]: The id of the [Comment]
+  Future<void> deleteById(String commentId) {
+    return (delete(commentTable)
+          ..where((comment) => comment.id.equals(commentId)))
+        .go();
   }
 }

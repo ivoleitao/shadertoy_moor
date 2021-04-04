@@ -96,4 +96,13 @@ class PlaylistDao extends DatabaseAccessor<MoorStore> with _$PlaylistDaoMixin {
         playlistShaderTable, _toPlaylistShaderEntries(playlistId, shaderIds),
         mode: InsertMode.insertOrReplace));
   }
+
+  /// Deletes a [Playlist] by [Id]
+  ///
+  /// * [playlistId]: The id of the [Playlist]
+  Future<void> deleteById(String playlistId) {
+    return (delete(playlistTable)
+          ..where((playlist) => playlist.id.equals(playlistId)))
+        .go();
+  }
 }

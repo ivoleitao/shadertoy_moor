@@ -547,6 +547,70 @@ void main() {
       expect(response.ids,
           containsAll(findShaderIdsResponsetFixture(shaderPaths).ids));
     });
+
+    test('Delete shader by id', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final shader = shaderFixture('shaders/happy_jumping.json');
+      await store.saveShader(shader);
+      final fsr1 = await store.findShaderById(shader.info.id);
+      // act
+      final dsr = await store.deleteShaderById(shader.info.id);
+      final fsr2 = await store.findShaderById(shader.info.id);
+      // assert
+      expect(fsr1.shader, isNotNull);
+      expect(dsr, isNotNull);
+      expect(dsr.error, isNull);
+      expect(fsr2.shader, isNull);
+    });
+
+    test('Delete shader by id with comments', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final shader = shaderFixture('shaders/elevated.json');
+      final shaderId = shader.info.id;
+      await store.saveShader(shader);
+      final comments = commentListFixture('comment/$shaderId.json');
+      await store.saveShaderComments(shaderId, comments);
+      final fcr1 = await store.findCommentsByShaderId(shaderId);
+      // act
+      final dsr = await store.deleteShaderById(shader.info.id);
+      final fcr2 = await store.findCommentsByShaderId(shaderId);
+      // assert
+      expect(fcr1.comments, isNotEmpty);
+      expect(dsr, isNotNull);
+      expect(dsr.error, isNull);
+      expect(fcr2.comments, isEmpty);
+    });
+
+    test('Delete shader by id with playlist reference', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final playlistId = 'week';
+      final shaderPaths = [
+        'shaders/seascape.json',
+        'shaders/happy_jumping.json'
+      ];
+      final shaders = shadersFixture(shaderPaths);
+      await store.saveShaders(shaders);
+      final playlist = playlistFixture('playlist/$playlistId.json');
+      await store.savePlaylist(playlist);
+      await store.savePlaylistShaders(
+          playlistId, shaders.map((shader) => shader.info.id).toList());
+      final fspr1 = await store.findShadersByPlaylistId(playlistId);
+      // act
+      final dsr = await store.deleteShaderById(shaders[0].info.id);
+      final fspr2 = await store.findShadersByPlaylistId(playlistId);
+      // assert
+      expect(fspr1.shaders, contains(FindShaderResponse(shader: shaders[0])));
+      expect(dsr, isNotNull);
+      expect(dsr.error, isNull);
+      expect(fspr2.shaders,
+          isNot(contains(FindShaderResponse(shader: shaders[0]))));
+    });
   });
 
   group('User', () {
@@ -729,6 +793,24 @@ void main() {
       expect(
           response.ids, containsAll(findUserIdsResponseFixture(userPaths).ids));
     });
+
+    test('Delete user by id', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final userId = 'iq';
+      final user = userFixture('users/$userId.json');
+      await store.saveUser(user);
+      final fur1 = await store.findUserById(user.id);
+      // act
+      final dur = await store.deleteUserById(user.id);
+      final fur2 = await store.findUserById(user.id);
+      // assert
+      expect(fur1.user, isNotNull);
+      expect(dur, isNotNull);
+      expect(dur.error, isNull);
+      expect(fur2.user, isNull);
+    });
   });
 
   group('Comment', () {
@@ -766,6 +848,43 @@ void main() {
       // assert
       expect(savedComments1.comments, originalComments);
       expect(savedComments2.comments, updatedComments);
+    });
+
+    test('Find comment by id', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final shader = shaderFixture('shaders/elevated.json');
+      final shaderId = shader.info.id;
+      await store.saveShader(shader);
+      final comments = commentListFixture('comment/$shaderId.json');
+      await store.saveShaderComments(shaderId, comments);
+      // act
+      final response = await store.findCommentById(comments[0].id);
+      // assert
+      expect(response, isNotNull);
+      expect(response.error, isNull);
+      expect(response.comment, comments[0]);
+    });
+
+    test('Delete comment by id', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final shader = shaderFixture('shaders/elevated.json');
+      final shaderId = shader.info.id;
+      await store.saveShader(shader);
+      final comments = commentListFixture('comment/$shaderId.json');
+      await store.saveShaderComments(shaderId, comments);
+      final fcr1 = await store.findCommentsByShaderId(shaderId);
+      // act
+      final dcr = await store.deleteCommentById(comments[0].id);
+      final fcr2 = await store.findCommentsByShaderId(shaderId);
+      // assert
+      expect(fcr1.comments, isNotNull);
+      expect(dcr, isNotNull);
+      expect(dcr.error, isNull);
+      expect(fcr2.comments, isNot(contains(comments[0].id)));
     });
   });
 
@@ -984,6 +1103,50 @@ void main() {
       final expected = findShaderIdsResponsetFixture(shaderPaths).ids;
 
       expect(actual, containsAllInOrder(expected));
+    });
+
+    test('Delete playlist by id', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final playlistId = 'week';
+      final playlist = playlistFixture('playlist/$playlistId.json');
+      await store.savePlaylist(playlist);
+      final fpr1 = await store.findPlaylistById(playlist.id);
+      // act
+      final dpr = await store.deletePlaylistById(playlist.id);
+      final fpr2 = await store.findPlaylistById(playlist.id);
+      // assert
+      expect(fpr1.playlist, isNotNull);
+      expect(dpr, isNotNull);
+      expect(dpr.error, isNull);
+      expect(fpr2.playlist, isNull);
+    });
+
+    test('Delete playlist by id with playlist reference', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final playlistId = 'week';
+      final shaderPaths = [
+        'shaders/seascape.json',
+        'shaders/happy_jumping.json'
+      ];
+      final shaders = shadersFixture(shaderPaths);
+      await store.saveShaders(shaders);
+      final playlist = playlistFixture('playlist/$playlistId.json');
+      await store.savePlaylist(playlist);
+      await store.savePlaylistShaders(
+          playlistId, shaders.map((shader) => shader.info.id).toList());
+      final fspr1 = await store.findShadersByPlaylistId(playlistId);
+      // act
+      final dsr = await store.deletePlaylistById(playlistId);
+      final fspr2 = await store.findShadersByPlaylistId(playlistId);
+      // assert
+      expect(fspr1.shaders, contains(FindShaderResponse(shader: shaders[0])));
+      expect(dsr, isNotNull);
+      expect(dsr.error, isNull);
+      expect(fspr2.shaders, isEmpty);
     });
   });
 }

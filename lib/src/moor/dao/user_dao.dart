@@ -80,4 +80,11 @@ class UserDao extends DatabaseAccessor<MoorStore> with _$UserDaoMixin {
     return batch((b) => b.insertAll(userTable, _toUserEntries(users),
         mode: InsertMode.insertOrReplace));
   }
+
+  /// Deletes a [User] by [userId]
+  ///
+  /// * [userId]: The id of the [User]
+  Future<void> deleteById(String userId) {
+    return (delete(userTable)..where((user) => user.id.equals(userId))).go();
+  }
 }

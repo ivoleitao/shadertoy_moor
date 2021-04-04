@@ -313,4 +313,12 @@ class ShaderDao extends DatabaseAccessor<MoorStore> with _$ShaderDaoMixin {
     return batch((b) => b.insertAll(shaderTable, _toShaderEntries(shaders),
         mode: InsertMode.insertOrReplace));
   }
+
+  /// Deletes a [Shader] by [shaderId]
+  ///
+  /// * [shaderId]: The id of the [Shader]
+  Future<void> deleteById(String shaderId) {
+    return (delete(shaderTable)..where((shader) => shader.id.equals(shaderId)))
+        .go();
+  }
 }

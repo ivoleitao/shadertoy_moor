@@ -7,22 +7,18 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    container:
-      image: google/dart:latest
-
     steps:
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: stable    
       - name: Install dependencies
         run: |
           apt-get update
           apt-get install libsqlite3-dev -y
-      - name: Add pub to the path
-        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
-      - name: Install derry
-        run: pub global activate derry
       - name: Checkout code
         uses: actions/checkout@v2
-      - name: Prepare
-        run: derry prepare
+      - name: Install derry
+        run: pub global activate derry
       - name: Build
         run: derry build
       - name: Verify
