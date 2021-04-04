@@ -1,6 +1,8 @@
 ## 1.0.1
 
-- TODO
+- Updated to the next version of the shadertoy_api
+- Updated derry file
+- Using setup dart action on the github actions
 
 ## 1.0.0
 
