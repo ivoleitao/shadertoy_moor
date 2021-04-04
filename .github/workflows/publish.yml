@@ -13,8 +13,8 @@ jobs:
           sdk: stable    
       - name: Install dependencies
         run: |
-          apt-get update
-          apt-get install libsqlite3-dev -y
+          sudo apt-get update
+          sudo apt-get install libsqlite3-dev -y
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Install derry
