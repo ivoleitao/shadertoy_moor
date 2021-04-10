@@ -1,3 +1,7 @@
+## 1.0.4
+
+- TODO
+
 ## 1.0.3
 
 - Updated to the next version of the shadertoy_api
