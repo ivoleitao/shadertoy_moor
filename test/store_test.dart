@@ -201,6 +201,54 @@ void main() {
       expect(response.shaders, findShadersResponseFixture(shaderPaths).shaders);
     });
 
+    test('Find shader ids by query', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final shaderPaths = [
+        'shaders/clouds.json',
+        'shaders/elevated.json',
+        'shaders/rainforest.json',
+        'shaders/raymarching_part_1.json',
+        'shaders/raymarching_part_2.json',
+        'shaders/raymarching_part_3.json',
+        'shaders/raymarching_part_4.json',
+        'shaders/raymarching_part_6.json',
+        'shaders/raymarching_primitives.json',
+        'shaders/volcanic.json',
+      ];
+      final shaders = shadersFixture(shaderPaths);
+      await store.saveShaders(shaders);
+      // act
+      final response = await store
+          .findShaderIds(term: 'Elevated', filters: {'procedural', '3d'});
+      // assert
+      final actual = response.ids;
+      final expected =
+          findShaderIdsResponseFixture(['shaders/elevated.json']).ids;
+
+      expect(actual, containsAllInOrder(expected));
+    });
+
+    test('Find all shader ids', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final shaderPaths = [
+        'shaders/seascape.json',
+        'shaders/happy_jumping.json'
+      ];
+      final shaders = shadersFixture(shaderPaths);
+      await store.saveShaders(shaders);
+      // act
+      final response = await store.findAllShaderIds();
+      // assert
+      expect(response, isNotNull);
+      expect(response.error, isNull);
+      expect(response.ids,
+          containsAll(findShaderIdsResponseFixture(shaderPaths).ids));
+    });
+
     test('Find shaders', () async {
       // prepare
       final options = newOptions();
@@ -500,36 +548,7 @@ void main() {
       expect(actual, containsAllInOrder(expected));
     });
 
-    test('Find shader ids by query', () async {
-      // prepare
-      final options = newOptions();
-      final store = newMoorStore(options);
-      final shaderPaths = [
-        'shaders/clouds.json',
-        'shaders/elevated.json',
-        'shaders/rainforest.json',
-        'shaders/raymarching_part_1.json',
-        'shaders/raymarching_part_2.json',
-        'shaders/raymarching_part_3.json',
-        'shaders/raymarching_part_4.json',
-        'shaders/raymarching_part_6.json',
-        'shaders/raymarching_primitives.json',
-        'shaders/volcanic.json',
-      ];
-      final shaders = shadersFixture(shaderPaths);
-      await store.saveShaders(shaders);
-      // act
-      final response = await store
-          .findShaderIds(term: 'Elevated', filters: {'procedural', '3d'});
-      // assert
-      final actual = response.ids;
-      final expected =
-          findShaderIdsResponsetFixture(['shaders/elevated.json']).ids;
-
-      expect(actual, containsAllInOrder(expected));
-    });
-
-    test('Find all shader ids', () async {
+    test('Find all shaders', () async {
       // prepare
       final options = newOptions();
       final store = newMoorStore(options);
@@ -540,12 +559,12 @@ void main() {
       final shaders = shadersFixture(shaderPaths);
       await store.saveShaders(shaders);
       // act
-      final response = await store.findAllShaderIds();
+      final response = await store.findAllShaders();
       // assert
       expect(response, isNotNull);
       expect(response.error, isNull);
-      expect(response.ids,
-          containsAll(findShaderIdsResponsetFixture(shaderPaths).ids));
+      expect(response.shaders,
+          containsAll(findShadersResponseFixture(shaderPaths).shaders));
     });
 
     test('Delete shader by id', () async {
@@ -573,7 +592,7 @@ void main() {
       final shaderId = shader.info.id;
       await store.saveShader(shader);
       final comments = commentListFixture('comment/$shaderId.json');
-      await store.saveShaderComments(shaderId, comments);
+      await store.saveShaderComments(comments);
       final fcr1 = await store.findCommentsByShaderId(shaderId);
       // act
       final dsr = await store.deleteShaderById(shader.info.id);
@@ -775,7 +794,7 @@ void main() {
       expect(response, isNotNull);
       expect(response.error, isNull);
       expect(response.ids,
-          findShaderIdsResponsetFixture(shaderPaths.sublist(1)).ids);
+          findShaderIdsResponseFixture(shaderPaths.sublist(1)).ids);
     });
 
     test('Find all user ids', () async {
@@ -792,6 +811,22 @@ void main() {
       expect(response.error, isNull);
       expect(
           response.ids, containsAll(findUserIdsResponseFixture(userPaths).ids));
+    });
+
+    test('Find all users', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final userPaths = ['users/iq.json', 'users/shaderflix.json'];
+      final users = usersFixture(userPaths);
+      await store.saveUsers(users);
+      // act
+      final response = await store.findAllUsers();
+      // assert
+      expect(response, isNotNull);
+      expect(response.error, isNull);
+      expect(response.users,
+          containsAll(findUsersResponseFixture(userPaths).users));
     });
 
     test('Delete user by id', () async {
@@ -823,7 +858,7 @@ void main() {
       await store.saveShader(shader);
       final comments = commentListFixture('comment/$shaderId.json');
       // act
-      final response = await store.saveShaderComments(shaderId, comments);
+      final response = await store.saveShaderComments(comments);
       // assert
       expect(response, isNotNull);
       expect(response.error, isNull);
@@ -841,9 +876,9 @@ void main() {
           .map((comment) => comment.copyWith(text: 'test'))
           .toList();
       // act
-      await store.saveShaderComments(shaderId, originalComments);
+      await store.saveShaderComments(originalComments);
       final savedComments1 = await store.findCommentsByShaderId(shaderId);
-      await store.saveShaderComments(shaderId, updatedComments);
+      await store.saveShaderComments(updatedComments);
       final savedComments2 = await store.findCommentsByShaderId(shaderId);
       // assert
       expect(savedComments1.comments, originalComments);
@@ -858,13 +893,51 @@ void main() {
       final shaderId = shader.info.id;
       await store.saveShader(shader);
       final comments = commentListFixture('comment/$shaderId.json');
-      await store.saveShaderComments(shaderId, comments);
+      await store.saveShaderComments(comments);
       // act
       final response = await store.findCommentById(comments[0].id);
       // assert
       expect(response, isNotNull);
       expect(response.error, isNull);
       expect(response.comment, comments[0]);
+    });
+
+    test('Find all comment ids', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final shader = shaderFixture('shaders/elevated.json');
+      final shaderId = shader.info.id;
+      await store.saveShader(shader);
+      final commentPath = 'comment/$shaderId.json';
+      final comments = commentListFixture(commentPath);
+      await store.saveShaderComments(comments);
+      // act
+      final response = await store.findAllCommentIds();
+      // assert
+      expect(response, isNotNull);
+      expect(response.error, isNull);
+      expect(response.ids,
+          containsAll(findCommentIdsResponseFixture(commentPath).ids));
+    });
+
+    test('Find all comments', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final shader = shaderFixture('shaders/elevated.json');
+      final shaderId = shader.info.id;
+      await store.saveShader(shader);
+      final commentPath = 'comment/$shaderId.json';
+      final comments = commentListFixture(commentPath);
+      await store.saveShaderComments(comments);
+      // act
+      final response = await store.findAllComments();
+      // assert
+      expect(response, isNotNull);
+      expect(response.error, isNull);
+      expect(response.comments,
+          containsAll(findCommentsResponseFixture(commentPath).comments));
     });
 
     test('Delete comment by id', () async {
@@ -875,7 +948,7 @@ void main() {
       final shaderId = shader.info.id;
       await store.saveShader(shader);
       final comments = commentListFixture('comment/$shaderId.json');
-      await store.saveShaderComments(shaderId, comments);
+      await store.saveShaderComments(comments);
       final fcr1 = await store.findCommentsByShaderId(shaderId);
       // act
       final dcr = await store.deleteCommentById(comments[0].id);
@@ -933,6 +1006,52 @@ void main() {
           response.error,
           ResponseError.notFound(
               context: CONTEXT_PLAYLIST, target: playlistId));
+    });
+
+    test('Find all playlist ids', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final playlistId1 = 'week';
+      final playlist1Path = 'playlist/$playlistId1.json';
+      final playlist1 = playlistFixture(playlist1Path);
+      await store.savePlaylist(playlist1);
+
+      final playlistId2 = 'featured';
+      final playlist2Path = 'playlist/$playlistId2.json';
+      final playlist2 = playlistFixture(playlist2Path);
+      await store.savePlaylist(playlist2);
+      final playlistPaths = [playlist1Path, playlist2Path];
+      // act
+      final response = await store.findAllPlaylistIds();
+      // assert
+      expect(response, isNotNull);
+      expect(response.error, isNull);
+      expect(response.ids,
+          containsAll(findPlaylistIdsResponseFixture(playlistPaths).ids));
+    });
+
+    test('Find all playlists', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final playlistId1 = 'week';
+      final playlist1Path = 'playlist/$playlistId1.json';
+      final playlist1 = playlistFixture(playlist1Path);
+      await store.savePlaylist(playlist1);
+
+      final playlistId2 = 'featured';
+      final playlist2Path = 'playlist/$playlistId2.json';
+      final playlist2 = playlistFixture(playlist2Path);
+      await store.savePlaylist(playlist2);
+      final playlistPaths = [playlist1Path, playlist2Path];
+      // act
+      final response = await store.findAllPlaylists();
+      // assert
+      expect(response, isNotNull);
+      expect(response.error, isNull);
+      expect(response.playlists,
+          containsAll(findPlaylistsResponseFixture(playlistPaths).playlists));
     });
 
     test('Save playlist shader ids', () async {
@@ -1066,7 +1185,7 @@ void main() {
       final response = await store.findShaderIdsByPlaylistId(playlistId);
       // assert
       final actual = response.ids;
-      final expected = findShaderIdsResponsetFixture(shaderPaths).ids;
+      final expected = findShaderIdsResponseFixture(shaderPaths).ids;
 
       expect(actual, containsAllInOrder(expected));
     });
@@ -1100,7 +1219,7 @@ void main() {
       final response = await store.findAllShaderIdsByPlaylistId(playlistId);
       // assert
       final actual = response.ids;
-      final expected = findShaderIdsResponsetFixture(shaderPaths).ids;
+      final expected = findShaderIdsResponseFixture(shaderPaths).ids;
 
       expect(actual, containsAllInOrder(expected));
     });

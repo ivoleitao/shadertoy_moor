@@ -271,6 +271,16 @@ class ShadertoyMoorStore extends ShadertoyBaseStore {
   }
 
   @override
+  Future<FindUsersResponse> findAllUsers() {
+    return _catchSqlError<FindUsersResponse>(
+        store.userDao.findAll().then((results) => FindUsersResponse(
+            users:
+                results.map((user) => FindUserResponse(user: user)).toList())),
+        (sqle) => FindUsersResponse(
+            error: _toResponseError(sqle, context: CONTEXT_USER)));
+  }
+
+  @override
   Future<SaveUserResponse> saveUser(User user) {
     return _catchSqlError<SaveUserResponse>(
         store.userDao.save(user).then((response) => SaveUserResponse()),
@@ -312,6 +322,32 @@ class ShadertoyMoorStore extends ShadertoyBaseStore {
   }
 
   @override
+  Future<FindShaderIdsResponse> findAllShaderIds() {
+    return _catchSqlError<FindShaderIdsResponse>(
+        store.shaderDao
+            .findAllIds()
+            .then((value) => FindShaderIdsResponse(ids: value)),
+        (sqle) => FindShaderIdsResponse(
+            error: _toResponseError(sqle, context: CONTEXT_SHADER)));
+  }
+
+  @override
+  Future<FindShaderIdsResponse> findShaderIds(
+      {String term, Set<String> filters, Sort sort, int from, int num}) {
+    return _catchSqlError<FindShaderIdsResponse>(
+        store.shaderDao
+            .findIds(
+                term: term,
+                filters: filters,
+                sort: sort ?? Sort.hot,
+                from: from,
+                num: num ?? options.shaderCount)
+            .then((results) => FindShaderIdsResponse(ids: results)),
+        (sqle) => FindShaderIdsResponse(
+            error: _toResponseError(sqle, context: CONTEXT_SHADER)));
+  }
+
+  @override
   Future<FindShadersResponse> findShadersByIdSet(Set<String> shaderIds) {
     return _catchSqlError<FindShadersResponse>(
         Future.wait(shaderIds.map((id) => findShaderById(id).then(
@@ -342,28 +378,13 @@ class ShadertoyMoorStore extends ShadertoyBaseStore {
   }
 
   @override
-  Future<FindShaderIdsResponse> findAllShaderIds() {
-    return _catchSqlError<FindShaderIdsResponse>(
-        store.shaderDao
-            .findAllIds()
-            .then((value) => FindShaderIdsResponse(ids: value)),
-        (sqle) => FindShaderIdsResponse(
-            error: _toResponseError(sqle, context: CONTEXT_SHADER)));
-  }
-
-  @override
-  Future<FindShaderIdsResponse> findShaderIds(
-      {String term, Set<String> filters, Sort sort, int from, int num}) {
-    return _catchSqlError<FindShaderIdsResponse>(
-        store.shaderDao
-            .findIds(
-                term: term,
-                filters: filters,
-                sort: sort ?? Sort.hot,
-                from: from,
-                num: num ?? options.shaderCount)
-            .then((results) => FindShaderIdsResponse(ids: results)),
-        (sqle) => FindShaderIdsResponse(
+  Future<FindShadersResponse> findAllShaders() {
+    return _catchSqlError<FindShadersResponse>(
+        store.shaderDao.findAll().then((results) => FindShadersResponse(
+            shaders: results
+                .map((shader) => FindShaderResponse(shader: shader))
+                .toList())),
+        (sqle) => FindShadersResponse(
             error: _toResponseError(sqle, context: CONTEXT_SHADER)));
   }
 
@@ -411,6 +432,16 @@ class ShadertoyMoorStore extends ShadertoyBaseStore {
   }
 
   @override
+  Future<FindCommentIdsResponse> findAllCommentIds() {
+    return _catchSqlError<FindCommentIdsResponse>(
+        store.commentDao
+            .findAllIds()
+            .then((value) => FindCommentIdsResponse(ids: value)),
+        (sqle) => FindCommentIdsResponse(
+            error: _toResponseError(sqle, context: CONTEXT_COMMENT)));
+  }
+
+  @override
   Future<FindCommentsResponse> findCommentsByShaderId(String shaderId) {
     return _catchSqlError<FindCommentsResponse>(
         store.commentDao.findByShaderId(shaderId).then((results) =>
@@ -426,15 +457,24 @@ class ShadertoyMoorStore extends ShadertoyBaseStore {
   }
 
   @override
+  Future<FindCommentsResponse> findAllComments() {
+    return _catchSqlError<FindCommentsResponse>(
+        store.commentDao
+            .findAll()
+            .then((value) => FindCommentsResponse(comments: value)),
+        (sqle) => FindCommentsResponse(
+            error: _toResponseError(sqle, context: CONTEXT_COMMENT)));
+  }
+
+  @override
   Future<SaveShaderCommentsResponse> saveShaderComments(
-      String shaderId, List<Comment> comments) {
+      List<Comment> comments) {
     return _catchSqlError<SaveShaderCommentsResponse>(
         store.commentDao
-            .save(shaderId, comments)
+            .save(comments)
             .then((reponse) => SaveShaderCommentsResponse()),
         (sqle) => SaveShaderCommentsResponse(
-            error: _toResponseError(sqle,
-                context: CONTEXT_COMMENT, target: shaderId)));
+            error: _toResponseError(sqle, context: CONTEXT_COMMENT)));
   }
 
   @override
@@ -508,6 +548,26 @@ class ShadertoyMoorStore extends ShadertoyBaseStore {
         (sqle) => FindPlaylistResponse(
             error: _toResponseError(sqle,
                 context: CONTEXT_PLAYLIST, target: playlistId)));
+  }
+
+  @override
+  Future<FindPlaylistIdsResponse> findAllPlaylistIds() {
+    return _catchSqlError<FindPlaylistIdsResponse>(
+        store.playlistDao
+            .findAllIds()
+            .then((value) => FindPlaylistIdsResponse(ids: value)),
+        (sqle) => FindPlaylistIdsResponse(
+            error: _toResponseError(sqle, context: CONTEXT_PLAYLIST)));
+  }
+
+  @override
+  Future<FindPlaylistsResponse> findAllPlaylists() {
+    return _catchSqlError<FindPlaylistsResponse>(
+        store.playlistDao
+            .findAll()
+            .then((value) => FindPlaylistsResponse(playlists: value)),
+        (sqle) => FindPlaylistsResponse(
+            error: _toResponseError(sqle, context: CONTEXT_PLAYLIST)));
   }
 
   @override

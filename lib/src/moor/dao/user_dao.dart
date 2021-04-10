@@ -43,6 +43,18 @@ class UserDao extends DatabaseAccessor<MoorStore> with _$UserDaoMixin {
     return userId().get();
   }
 
+  /// Converts a list of [UserEntry] into a list of [User]
+  ///
+  /// * [entries]: The list of entries to convert
+  List<User> _toEntities(List<UserEntry> entries) {
+    return entries.map((entry) => _toEntity(entry)).toList();
+  }
+
+  /// Returns all the users
+  Future<List<User>> findAll() {
+    return select(userTable).get().then(_toEntities);
+  }
+
   /// Converts a [User] into a [UserEntry]
   ///
   /// * [entity]: The entity to convert

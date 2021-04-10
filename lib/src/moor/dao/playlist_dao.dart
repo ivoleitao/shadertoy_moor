@@ -7,7 +7,9 @@ import 'package:shadertoy_moor/src/moor/table/playlist_table.dart';
 
 part 'playlist_dao.g.dart';
 
-@UseDao(tables: [PlaylistTable, PlaylistShaderTable])
+@UseDao(
+    tables: [PlaylistTable, PlaylistShaderTable],
+    queries: {'playlistId': 'SELECT id FROM Playlist'})
 
 /// Playlist data access object
 class PlaylistDao extends DatabaseAccessor<MoorStore> with _$PlaylistDaoMixin {
@@ -38,6 +40,23 @@ class PlaylistDao extends DatabaseAccessor<MoorStore> with _$PlaylistDaoMixin {
     return (select(playlistTable)..where((t) => t.id.equals(playlistId)))
         .getSingle()
         .then(_toPlaylistEntity);
+  }
+
+  /// Returns all the playlist ids
+  Future<List<String>> findAllIds() {
+    return playlistId().get();
+  }
+
+  /// Converts a list of [PlaylistEntry] into a list of [Playlist]
+  ///
+  /// * [entries]: The list of entries to convert
+  List<Playlist> _toPlaylistEntities(List<PlaylistEntry> entries) {
+    return entries.map((entry) => _toPlaylistEntity(entry)).toList();
+  }
+
+  /// Returns all the playlists
+  Future<List<Playlist>> findAll() {
+    return select(playlistTable).get().then(_toPlaylistEntities);
   }
 
   /// Converts a [Playlist] into a [PlaylistEntry]

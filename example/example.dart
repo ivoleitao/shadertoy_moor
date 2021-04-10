@@ -109,6 +109,7 @@ void main(List<String> arguments) async {
   // Creates the first comment
   final comment1 = Comment(
       id: 'CaA0A1',
+      shaderId: shaderId1,
       userId: userId2,
       picture: '/img/profile.jpg',
       date: DateTime.now(),
@@ -117,13 +118,14 @@ void main(List<String> arguments) async {
   // Creates the second comment
   final comment2 = Comment(
       id: 'CaA0A2',
+      shaderId: shaderId1,
       userId: userId1,
       picture: '/img/profile.jpg',
       date: DateTime.now(),
       text: 'Thanks');
 
   // Save shader comments
-  await store.saveShaderComments(shaderId1, [comment1, comment2]);
+  await store.saveShaderComments([comment1, comment2]);
 
   // Retrieves the shader comments
   await store.findCommentsByShaderId(shaderId1);

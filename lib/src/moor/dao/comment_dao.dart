@@ -5,7 +5,8 @@ import 'package:shadertoy_moor/src/moor/table/comment_table.dart';
 
 part 'comment_dao.g.dart';
 
-@UseDao(tables: [CommentTable])
+@UseDao(
+    tables: [CommentTable], queries: {'commentId': 'SELECT id FROM Comment'})
 
 /// Comment data access object
 class CommentDao extends DatabaseAccessor<MoorStore> with _$CommentDaoMixin {
@@ -33,6 +34,7 @@ class CommentDao extends DatabaseAccessor<MoorStore> with _$CommentDaoMixin {
     return entry != null
         ? Comment(
             id: entry.id,
+            shaderId: entry.shaderId,
             userId: entry.userId,
             picture: entry.picture,
             date: entry.date,
@@ -67,18 +69,26 @@ class CommentDao extends DatabaseAccessor<MoorStore> with _$CommentDaoMixin {
         .then(_toCommentEntities);
   }
 
+  /// Returns all the comment ids
+  Future<List<String>> findAllIds() {
+    return commentId().get();
+  }
+
+  /// Returns all the comments
+  Future<List<Comment>> findAll() {
+    return select(commentTable).get().then(_toCommentEntities);
+  }
+
   /// Converts a list of [Comment] into a list of [CommentEntry]
   ///
-  /// * [shaderId]: The shaderId
   /// * [comments]: The list of [Comment] to convert
-  List<CommentEntry> _toCommentEntries(
-      String shaderId, List<Comment> comments) {
+  List<CommentEntry> _toCommentEntries(List<Comment> comments) {
     return comments
         .map((comment) => CommentEntry(
             id: comment.id,
             userId: comment.userId,
             picture: comment.picture,
-            shaderId: shaderId,
+            shaderId: comment.shaderId,
             date: comment.date,
             comment: comment.text,
             hidden: comment.hidden))
@@ -87,11 +97,9 @@ class CommentDao extends DatabaseAccessor<MoorStore> with _$CommentDaoMixin {
 
   /// Saves the comments of a shader
   ///
-  /// * [shaderId]: The id of the shader
   /// * [comments]: The list of comments to save
-  Future<void> save(String shaderId, List<Comment> comments) {
-    return batch((b) => b.insertAll(
-        commentTable, _toCommentEntries(shaderId, comments),
+  Future<void> save(List<Comment> comments) {
+    return batch((b) => b.insertAll(commentTable, _toCommentEntries(comments),
         mode: InsertMode.insertOrReplace));
   }
 

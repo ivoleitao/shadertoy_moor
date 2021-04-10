@@ -220,6 +220,11 @@ class ShaderDao extends DatabaseAccessor<MoorStore> with _$ShaderDaoMixin {
         .then(_toShaderEntities);
   }
 
+  /// Returns all the users
+  Future<List<Shader>> findAll() {
+    return select(shaderTable).get().then(_toShaderEntities);
+  }
+
   /// Returns a list of playlist shaders
   ///
   /// * [playlistId]: The id of the playlist
