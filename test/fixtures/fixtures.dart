@@ -88,9 +88,13 @@ FindPlaylistIdsResponse findPlaylistIdsResponseFixture(List<String> paths,
         ids: paths.map((p) => playlistIdFixture(p)).toList(),
         error: error);
 
+FindPlaylistResponse findPlaylistResponseFixture(String path,
+        {ResponseError error}) =>
+    FindPlaylistResponse(playlist: playlistFixture(path), error: error);
+
 FindPlaylistsResponse findPlaylistsResponseFixture(List<String> paths,
         {int total, ResponseError error}) =>
     FindPlaylistsResponse(
         total: total,
-        playlists: paths.map((p) => playlistFixture(p)).toList(),
+        playlists: paths.map((p) => findPlaylistResponseFixture(p)).toList(),
         error: error);

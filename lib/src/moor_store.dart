@@ -563,9 +563,10 @@ class ShadertoyMoorStore extends ShadertoyBaseStore {
   @override
   Future<FindPlaylistsResponse> findAllPlaylists() {
     return _catchSqlError<FindPlaylistsResponse>(
-        store.playlistDao
-            .findAll()
-            .then((value) => FindPlaylistsResponse(playlists: value)),
+        store.playlistDao.findAll().then((results) => FindPlaylistsResponse(
+            playlists: results
+                .map((playlist) => FindPlaylistResponse(playlist: playlist))
+                .toList())),
         (sqle) => FindPlaylistsResponse(
             error: _toResponseError(sqle, context: CONTEXT_PLAYLIST)));
   }
