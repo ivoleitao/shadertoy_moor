@@ -613,10 +613,11 @@ class ShadertoyMoorStore extends ShadertoyBaseStore {
   }
 
   @override
-  Future<SavePlaylistResponse> savePlaylist(Playlist playlist) {
+  Future<SavePlaylistResponse> savePlaylist(Playlist playlist,
+      {List<String> shaderIds}) {
     return _catchSqlError<SavePlaylistResponse>(
         store.playlistDao
-            .save(playlist)
+            .save(playlist, shaderIds: shaderIds)
             .then((reponse) => SavePlaylistResponse()),
         (sqle) => SavePlaylistResponse(
             error: _toResponseError(sqle,

@@ -1,6 +1,7 @@
 ## 1.0.4
 
-- TODO
+- Updated to the next version of the shadertoy_api
+- savePlaylist now optionally saves the shaderIds of the playlist as well
 
 ## 1.0.3
 

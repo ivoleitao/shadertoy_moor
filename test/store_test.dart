@@ -992,6 +992,26 @@ void main() {
       expect(savedPlaylist2.playlist, updatedPlaylist);
     });
 
+    test('Save playlist with shader ids', () async {
+      // prepare
+      final options = newOptions();
+      final store = newMoorStore(options);
+      final playlistId = 'week';
+      final shaderPaths = [
+        'shaders/seascape.json',
+        'shaders/happy_jumping.json'
+      ];
+      final shaders = shadersFixture(shaderPaths);
+      await store.saveShaders(shaders);
+      final playlist = playlistFixture('playlist/$playlistId.json');
+      // act
+      final response = await store.savePlaylist(playlist,
+          shaderIds: shaders.map((shader) => shader.info.id).toList());
+      // assert
+      expect(response, isNotNull);
+      expect(response.error, isNull);
+    });
+
     test('Find playlist by id with not found response', () async {
       // prepare
       final options = newOptions();
@@ -1054,7 +1074,7 @@ void main() {
           containsAll(findPlaylistsResponseFixture(playlistPaths).playlists));
     });
 
-    test('Save playlist shader ids', () async {
+    test('Save playlist shaders', () async {
       // prepare
       final options = newOptions();
       final store = newMoorStore(options);

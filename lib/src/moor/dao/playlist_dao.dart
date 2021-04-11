@@ -71,16 +71,6 @@ class PlaylistDao extends DatabaseAccessor<MoorStore> with _$PlaylistDaoMixin {
         privacy: EnumToString.convertToString(entity.privacy));
   }
 
-  /// Saves a [Playlist]
-  ///
-  /// * [playlist]: The [Playlist] to save
-  ///
-  /// Returns the rowid of the inserted row
-  Future<void> save(Playlist playlist) {
-    return into(playlistTable)
-        .insert(_toPlaylistEntry(playlist), mode: InsertMode.insertOrReplace);
-  }
-
   /// Creates a [PlaylistShaderEntry]
   ///
   /// * [playlistId]: The id of the playlist
@@ -106,14 +96,42 @@ class PlaylistDao extends DatabaseAccessor<MoorStore> with _$PlaylistDaoMixin {
     return entries;
   }
 
-  /// Saves playlist shader Ids
+  Future<void> _savePlaylist(Playlist playlist) {
+    return into(playlistTable)
+        .insert(_toPlaylistEntry(playlist), mode: InsertMode.insertOrReplace);
+  }
+
+  Future<void> _savePlaylistShaders(String playlistId, List<String> shaderIds) {
+    return batch((b) => b.insertAll(
+        playlistShaderTable, _toPlaylistShaderEntries(playlistId, shaderIds),
+        mode: InsertMode.insertOrReplace));
+  }
+
+  /// Saves a [Playlist]
+  ///
+  /// * [playlist]: The [Playlist] to save
+  ///
+  /// Returns the rowid of the inserted row
+  Future<void> save(Playlist playlist, {List<String> shaderIds}) {
+    if (shaderIds == null) {
+      return _savePlaylist(playlist);
+    } else {
+      return transaction(() async {
+        // Save the playlist
+        await _savePlaylist(playlist);
+
+        // Then save the playlist shaders
+        await _savePlaylistShaders(playlist.id, shaderIds);
+      });
+    }
+  }
+
+  /// Saves playlist shader ids
   ///
   /// * [playlistId]: The id of the playlist
   /// * [shaderIds]: The list of shader ids
   Future<void> savePlaylistShaders(String playlistId, List<String> shaderIds) {
-    return batch((b) => b.insertAll(
-        playlistShaderTable, _toPlaylistShaderEntries(playlistId, shaderIds),
-        mode: InsertMode.insertOrReplace));
+    return _savePlaylistShaders(playlistId, shaderIds);
   }
 
   /// Deletes a [Playlist] by [Id]

@@ -11,9 +11,9 @@ environment:
 dependencies:
   enum_to_string: ^1.0.14
   moor: ^3.4.0
-  shadertoy_api: ^1.0.20
+  shadertoy_api: ^1.0.21
   # shadertoy_api:
-  #  path: ../shadertoy_api
+  # path: ../shadertoy_api
 
 dev_dependencies:
   pedantic: ^1.9.2
